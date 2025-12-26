@@ -5,6 +5,7 @@ def clean_data(df):
     - Điền giá trị thiếu cho cột số bằng trung bình
     - Điền giá trị thiếu cho cột chuỗi bằng mode (trừ cột Medal)
     - Chuẩn hóa các cột số
+    - Còn nữa nhưng mà chưa làm xong :))))
     """
     # 1. Xóa dòng trùng
     df = df.drop_duplicates()
@@ -25,3 +26,4 @@ def clean_data(df):
     df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
 
     return df
+
