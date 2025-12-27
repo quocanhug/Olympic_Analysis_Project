@@ -15,7 +15,7 @@ setup_style()
 
 # NHÓM BIỂU ĐỒ CƠ BẢN
 
-def plot_gender_trend(df, filename='1_xu_huong_gioi_tinh.png'):
+def plot_gender_trend(df):
     """Biểu đồ đường: Xu hướng Nam/Nữ"""
     data = df.groupby(['Year', 'Sex'])['ID'].nunique().unstack()
     plt.figure()
@@ -24,10 +24,9 @@ def plot_gender_trend(df, filename='1_xu_huong_gioi_tinh.png'):
     plt.title('Xu hướng tham gia của VĐV Nam và Nữ qua các năm')
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.6)
-    plt.savefig(filename, bbox_inches='tight')
-    plt.close()
+    plt.show()
 
-def plot_top_medals(df, top_n=10, filename='2_top_quoc_gia.png'):
+def plot_top_medals(df, top_n=10):
     """Biểu đồ cột: Top quốc gia nhiều huy chương"""
     df_medals = df.dropna(subset=['Medal'])
     top_countries = df_medals['NOC'].value_counts().head(top_n)
@@ -37,9 +36,9 @@ def plot_top_medals(df, top_n=10, filename='2_top_quoc_gia.png'):
     for bar in bars:
         plt.text(bar.get_x() + bar.get_width()/2., bar.get_height(), f'{int(bar.get_height())}', ha='center', va='bottom')
     plt.savefig(filename, bbox_inches='tight')
-    plt.close()
+    plt.show()
 
-def plot_physical_distribution(df, filename='3_phan_bo_the_chat_chung.png'):
+def plot_physical_distribution(df):
 
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
     
@@ -66,10 +65,9 @@ def plot_physical_distribution(df, filename='3_phan_bo_the_chat_chung.png'):
 
     plt.suptitle('Tổng quan Thể chất Vận động viên Olympic (Toàn bộ các môn)', fontsize=16, fontweight='bold')
     plt.tight_layout()
-    plt.savefig(filename, bbox_inches='tight')
-    plt.close()
+    plt.show()
 
-def plot_physical_comparison_by_sport(df, filename='3b_so_sanh_the_chat_cac_mon.png'):
+def plot_physical_comparison_by_sport(df):
     # Lấy Top 15 môn có nhiều VĐV tham gia nhất
     top_sports = df['Sport'].value_counts().head(15).index
     df_top = df[df['Sport'].isin(top_sports)]
@@ -91,12 +89,11 @@ def plot_physical_comparison_by_sport(df, filename='3b_so_sanh_the_chat_cac_mon.
     axes[1].tick_params(axis='x', rotation=45)
 
     plt.tight_layout()
-    plt.savefig(filename, bbox_inches='tight')
-    plt.close()
+    plt.show()
 
 # NHÓM BIỂU ĐỒ NÂNG CAO
 
-def plot_host_advantage_china(df, filename='5_loi_the_san_nha.png'):
+def plot_host_advantage_china(df):
     """Insight 1: Lợi thế sân nhà (Trung Quốc 2008)"""
     years = [1996, 2000, 2004, 2008, 2012, 2016]
     df_chn = df[(df['NOC'] == 'CHN') & (df['Year'].isin(years))]
@@ -112,10 +109,9 @@ def plot_host_advantage_china(df, filename='5_loi_the_san_nha.png'):
     
     plt.annotate('SÂN NHÀ (HOST)', xy=(2008, medals[2008]), xytext=(2008, medals[2008]+30),
                  arrowprops=dict(facecolor='black', shrink=0.05), ha='center', fontweight='bold')
-    plt.savefig(filename, bbox_inches='tight')
-    plt.close()
+    plt.show()
 
-def plot_body_evolution_100m(df, filename='6_tien_hoa_co_the.png'):
+def plot_body_evolution_100m(df):
     """Insight 2: Sự tiến hóa cơ thể VĐV chạy 100m"""
     subset = df[(df['Event'] == "Athletics Men's 100 metres") & (df['Year'] > 1900)].dropna(subset=['Height', 'Weight'])
     fig, ax1 = plt.subplots(figsize=(12, 7))
@@ -128,10 +124,9 @@ def plot_body_evolution_100m(df, filename='6_tien_hoa_co_the.png'):
     ax2.set_ylabel('Cân nặng (kg)', color='orange')
     
     plt.title('Sự thay đổi thể hình VĐV chạy 100m Nam qua 1 thế kỷ')
-    plt.savefig(filename, bbox_inches='tight')
-    plt.close()
+    plt.show()
 
-def plot_geopolitics_impact(df, filename='7_dia_chinh_tri.png'):
+def plot_geopolitics_impact(df):
     """Insight 3: Ảnh hưởng chiến tranh lạnh (1980, 1984)"""
     summer = df[df['Season'] == 'Summer']
     noc_count = summer.groupby('Year')['NOC'].nunique()
@@ -145,12 +140,10 @@ def plot_geopolitics_impact(df, filename='7_dia_chinh_tri.png'):
                  arrowprops=dict(facecolor='red', shrink=0.05), color='red', fontweight='bold')
     plt.annotate('Tẩy chay 1984\n(Los Angeles)', xy=(1984, noc_count[1984]), xytext=(1990, 100),
                  arrowprops=dict(facecolor='red', shrink=0.05), color='red', fontweight='bold')
-    plt.savefig(filename, bbox_inches='tight')
-    plt.close()
-
+    plt.show()
 # VIỆT NAM
 
-def plot_vietnam_stats(df, filename='8_vietnam_overview.png'):
+def plot_vietnam_stats(df):
     """Việt Nam: Số lượng tham gia & Môn thế mạnh"""
     df_vn = df[df['NOC'] == 'VIE']
     if df_vn.empty: return
@@ -176,10 +169,9 @@ def plot_vietnam_stats(df, filename='8_vietnam_overview.png'):
     sns.barplot(x=top_sports.values, y=top_sports.index, ax=ax2, palette='OrRd_r')
     ax2.set_title('Top 5 Môn thể thao VN tham gia nhiều nhất')
     
-    plt.savefig(filename, bbox_inches='tight')
-    plt.close()
+    plt.show()
 
-def plot_vietnam_details(df, filename='9_vietnam_medals.png'):
+def plot_vietnam_details(df):
     """Bảng danh sách huy chương VN"""
     df_vn = df[df['NOC'] == 'VIE']
     # Chỉ lấy dòng có huy chương (Gold/Silver/Bronze)
@@ -196,5 +188,4 @@ def plot_vietnam_details(df, filename='9_vietnam_medals.png'):
     table = ax.table(cellText=cell_text, colLabels=["Năm", "VĐV", "Môn", "Huy chương"], loc='center', cellLoc='center')
     table.set_fontsize(12); table.scale(1.2, 2)
     plt.title('Bảng vàng thành tích Thể thao Việt Nam', fontweight='bold')
-    plt.savefig(filename, bbox_inches='tight')
-    plt.close()
+    plt.show()
