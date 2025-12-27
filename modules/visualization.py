@@ -39,8 +39,7 @@ def plot_top_medals(df, top_n=10):
     plt.bar(top_countries.index, top_countries.values, color=sns.color_palette("viridis", top_n))
     plt.title(f'Top {top_n} quốc gia đạt nhiều huy chương nhất lịch sử') 
     plt.xticks(rotation=45)
-    plt.ylabel("Số lượng huy chương") 
-    plt.show()
+    plt.show() 
 
 def plot_physical_distribution(df):
     """ Tuổi, Chiều cao, Cân nặng. Xem xét sự phân bố thể chất chung của toàn bộ VĐV.
@@ -144,14 +143,14 @@ def plot_host_advantage_china(df):
     So sánh thành tích của Trung Quốc tại Olympic 2008 (sân nhà) so với các năm khác.
     """
     years = [1996, 2000, 2004, 2008, 2012, 2016]
-    df_chn = df[(df['NOC'] == 'CHN') & (df['Year'].isin(years))]
-    medals = df_chn[df_chn['Medal'] != 'No Medal'].groupby('Year')['Medal'].count()
-    
-    plt.figure(figsize=(10, 6)) 
-    colors = ['#ff9999' if x != 2008 else '#CC0000' for x in medals.index]
-    plt.bar(medals.index.astype(str), medals.values, color=colors)
-    plt.title('Hiệu ứng lợi thế sân nhà: Thành tích Trung Quốc (Nổi bật năm 2008)')
-    plt.ylabel('Số lượng huy chương')
+    df_chn = df[(df['NOC'] == 'CHN') & 
+                    (df['Year'].isin(years)) & 
+                    (df['Medal'] != 'No Medal') & 
+                    (df['Medal'].notna())]
+    medals = df_chn.groupby('Year')['Medal'].count()
+    plt.figure(figsize=(10, 6)) # Ảnh to
+    plt.bar(medals.index.astype(str), medals.values, color='red')
+    plt.title('Lợi thế sân nhà TQ')
     plt.show()
 
 def plot_geopolitics_impact(df):
@@ -197,7 +196,7 @@ def plot_vietnam_stats(df):
     ax2.set_title('Top 5 Môn thể thao Việt Nam tham gia nhiều nhất')
     
     plt.tight_layout()
-    plt.show() 
+    plt.show()
 
 def plot_vietnam_details(df):
     """Thống kê Việt Nam: Bảng vàng thành tích.
