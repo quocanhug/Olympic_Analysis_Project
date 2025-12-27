@@ -189,33 +189,35 @@ def plot_host_advantage_china(df):
                     (df['Medal'] != 'No Medal') & 
                     (df['Medal'].notna())]
     medals = df_chn.groupby('Year')['Medal'].count()
-    plt.figure(figsize=(10, 6)) # Ảnh to
+    plt.figure(figsize=(10, 6)) 
     plt.bar(medals.index.astype(str), medals.values, color='red')
     plt.title('Lợi thế sân nhà TQ')
     plt.show()
 
 def plot_geopolitics_impact(df):
+    """ Ảnh hưởng chiến tranh lạnh (1980, 1984)"""
     summer = df[df['Season'] == 'Summer']
     noc_count = summer.groupby('Year')['NOC'].nunique()
-    plt.figure(figsize=(10, 6)) # Ảnh to
+
+    plt.figure()
+    plt.plot(noc_count.index, noc_count.values,
+             marker='o', color='green', linewidth=2)
+    plt.title('Số lượng quốc gia tham dự & Ảnh hưởng Chiến tranh lạnh')
+    plt.annotate('Tẩy chay 1980\n(Moscow)', xy=(1980, noc_count[1980]), xytext=(1960, 120),
+                 arrowprops=dict(facecolor='red', shrink=0.05), color='red', fontweight='bold')
+    plt.annotate('Tẩy chay 1984\n(Los Angeles)', xy=(1984, noc_count[1984]), xytext=(1990, 100),
+                 arrowprops=dict(facecolor='red', shrink=0.05), color='red', fontweight='bold')
+    plt.figure(figsize=(10, 6)) 
     plt.plot(noc_count.index, noc_count.values, linewidth=2, color='green')
     plt.title('Số quốc gia tham dự')
     plt.show() 
-    
-def plot_body_evolution_100m(df):
-    subset = df[(df['Event'] == "Athletics Men's 100 metres") & (df['Year'] > 1900)].dropna(subset=['Height', 'Weight'])
-    fig, ax1 = plt.subplots(figsize=(10, 6)) # Ảnh to
-    sns.regplot(data=subset, x='Year', y='Height', ax=ax1, scatter_kws={'s':20}, line_kws={'lw':2, 'color':'blue'})
-    ax2 = ax1.twinx()
-    sns.regplot(data=subset, x='Year', y='Weight', ax=ax2, scatter_kws={'s':20, 'color':'orange'}, line_kws={'lw':2, 'color':'orange'})
-    plt.show()
 
 # --- VIỆT NAM ---
 
 def plot_vietnam_stats(df):
     df_vn = df[df['NOC'] == 'VIE']
     if df_vn.empty: return
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12)) # Ảnh to
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12)) 
     
     vn_part = df_vn.groupby('Year')['ID'].nunique()
     sns.barplot(x=vn_part.index.astype(str), y=vn_part.values, ax=ax1, color='red')
