@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
+pd.options.mode.chained_assignment = None
+
 def clean_data(df):
     """
     Thực hiện làm sạch dữ liệu:
@@ -14,11 +16,9 @@ def clean_data(df):
     """
     # 1. Xóa dòng trùng
     df = df.drop_duplicates()
-
-    # Gôm các cột số cần xử lí 
+    
     numeric_cols = ["Age", "Height", "Weight"]
     numeric_cols = [col for col in numeric_cols if col in df.columns]
-    
     # 2. Xử lí định dạng sai
     for col in numeric_cols:
         if col in df.columns:
@@ -60,6 +60,7 @@ def clean_data(df):
     
             # Chặn biên (capping)
             df[col] = df[col].clip(lower, upper)
+            df[col] = df[col].round(2)
 
     return df
 
