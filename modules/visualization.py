@@ -207,9 +207,6 @@ def plot_geopolitics_impact(df):
                  arrowprops=dict(facecolor='red', shrink=0.05), color='red', fontweight='bold')
     plt.annotate('Tẩy chay 1984\n(Los Angeles)', xy=(1984, noc_count[1984]), xytext=(1990, 100),
                  arrowprops=dict(facecolor='red', shrink=0.05), color='red', fontweight='bold')
-    plt.figure(figsize=(10, 6)) 
-    plt.plot(noc_count.index, noc_count.values, linewidth=2, color='green')
-    plt.title('Số quốc gia tham dự')
     plt.show() 
 
 # --- VIỆT NAM ---
@@ -269,15 +266,6 @@ def plot_vietnam_stats(df):
     plt.show()
 
 def plot_vietnam_details(df):
-    df_vn = df[df['NOC'] == 'VIE']
-    real_medals = ['Gold', 'Silver', 'Bronze']
-    medals = df_vn[df_vn['Medal'].isin(real_medals)].sort_values('Year')
-    cell_text = [[row['Year'], row['Name'], row['Sport'], row['Medal']] for _, row in medals.iterrows()]
-    if not cell_text: return
-    fig, ax = plt.subplots(figsize=(12, len(cell_text)*0.5 + 2))
-    ax.axis('off')
-    ax.table(cellText=cell_text, colLabels=["Năm", "VĐV", "Môn", "Huy chương"], loc='center').scale(1, 2)
-    plt.show()
     """Thống kê Việt Nam: Bảng vàng thành tích.
     """
     df_vn = df[df['NOC'] == 'VIE']
