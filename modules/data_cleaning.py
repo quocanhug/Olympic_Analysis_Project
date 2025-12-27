@@ -14,9 +14,11 @@ def clean_data(df):
     """
     # 1. Xóa dòng trùng
     df = df.drop_duplicates()
-    
+
+    # Gôm các cột số cần xử lí 
     numeric_cols = ["Age", "Height", "Weight"]
     numeric_cols = [col for col in numeric_cols if col in df.columns]
+    
     # 2. Xử lí định dạng sai
     for col in numeric_cols:
         if col in df.columns:
@@ -60,3 +62,4 @@ def clean_data(df):
             df[col] = df[col].clip(lower, upper)
 
     return df
+
