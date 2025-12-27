@@ -24,13 +24,15 @@ def plot_gender_trend(df):
     plt.show()
 
 def plot_top_medals(df, top_n=10):
-    df_medals = df.dropna(subset=['Medal'])
+    df_medals = df[df['Medal'] != 'No Medal']
+    # Tính toán top quốc gia 
     top_countries = df_medals['NOC'].value_counts().head(top_n)
     plt.figure(figsize=(10, 6)) 
     plt.bar(top_countries.index, top_countries.values, color=sns.color_palette("viridis", top_n))
-    plt.title(f'Top {top_n} quốc gia')
+    plt.title(f'Top {top_n} quốc gia đạt nhiều huy chương nhất') # Đặt lại tiêu đề cho rõ nghĩa
     plt.xticks(rotation=45)
-    plt.show() 
+    plt.ylabel("Số lượng huy chương") 
+    plt.show()
 
 def plot_physical_distribution(df):
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
