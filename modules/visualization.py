@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans 
 from matplotlib.colors import ListedColormap
+from sklearn.preprocessing import StandardScaler
 
 def setup_style():
     sns.set_theme(style="whitegrid")
@@ -112,29 +113,31 @@ def plot_athlete_clustering(df):
     """ Gom nhóm các VĐV dựa trên sự tương đồng về Tuổi và Cân nặng. Phát hiện các nhóm đặc thù (VD: Nhóm trẻ nhẹ cân, Nhóm già nặng cân...).
     """
     df_cluster = df[['Age', 'Weight']].dropna().copy()
-    
-    if len(df_cluster) == 0:
-        print("Không đủ dữ liệu để phân cụm!")
-        return
-    
+    if len(df_cluster) == 0: return
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(df_cluster)
     kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
-    df_cluster['Cluster'] = kmeans.fit_predict(df_cluster)
+    df_cluster['Cluster'] = kmeans.fit_predict(X_scaled)
+
     cluster_means = df_cluster.groupby('Cluster')['Weight'].mean().sort_values()
-    mapping = {original_label: new_label for new_label, original_label in enumerate(cluster_means.index)}
+    mapping = {original: new for new, original in enumerate(cluster_means.index)}
     df_cluster['Sorted_Cluster'] = df_cluster['Cluster'].map(mapping)
-    custom_colors = ['#FFD700', '#008080', '#4B0082']
+    custom_colors = ['#FFD700', '#008080', '#4B0082'] 
     cmap = ListedColormap(custom_colors)
+    
     plt.figure(figsize=(10, 6))
     scatter = plt.scatter(df_cluster['Age'], df_cluster['Weight'], 
                           c=df_cluster['Sorted_Cluster'], cmap=cmap, s=50, alpha=0.6)
+ 
     handles, _ = scatter.legend_elements()
     legend_labels = ['Nhóm 1: Nhẹ/Trẻ (Vàng)', 'Nhóm 2: Trung bình (Xanh)', 'Nhóm 3: Nặng/Già (Tím)']
-    plt.legend(handles, legend_labels, title="Phân nhóm thể trạng")
-    plt.title('Phân cụm VĐV theo Tuổi và Cân nặng')
+    plt.legend(handles, legend_labels, title="Phân nhóm thể trạng", loc='upper right')
+    
+    plt.title('Phân cụm VĐV theo Tuổi và Cân nặng ')
     plt.xlabel('Tuổi (Age)')
-    plt.ylabel('Cân nặng (Weight)')
+    plt.ylabel('Cân nặng (Weight) - kg')
     plt.show()
-
+    
 # CÁC BIỂU ĐỒ PHÂN TÍCH CHUYÊN SÂU 
 
 def plot_host_advantage_china(df):
