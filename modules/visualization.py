@@ -24,15 +24,13 @@ def plot_gender_trend(df):
     plt.show()
 
 def plot_top_medals(df, top_n=10):
-    df_medals = df[df['Medal'] != 'No Medal']
-    # Tính toán top quốc gia 
+    df_medals = df[(df['Medal'].notna()) & (df['Medal'] != 'No Medal')]
     top_countries = df_medals['NOC'].value_counts().head(top_n)
     plt.figure(figsize=(10, 6)) 
     plt.bar(top_countries.index, top_countries.values, color=sns.color_palette("viridis", top_n))
-    plt.title(f'Top {top_n} quốc gia đạt nhiều huy chương nhất') # Đặt lại tiêu đề cho rõ nghĩa
+    plt.title(f'Top {top_n} quốc gia đạt nhiều huy chương nhất')
     plt.xticks(rotation=45)
-    plt.ylabel("Số lượng huy chương") 
-    plt.show()
+    plt.show() 
 
 def plot_physical_distribution(df):
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
@@ -60,8 +58,11 @@ def plot_physical_comparison_by_sport(df):
 
 def plot_host_advantage_china(df):
     years = [1996, 2000, 2004, 2008, 2012, 2016]
-    df_chn = df[(df['NOC'] == 'CHN') & (df['Year'].isin(years))]
-    medals = df_chn[df_chn['Medal'].notna()].groupby('Year')['Medal'].count()
+    df_chn = df[(df['NOC'] == 'CHN') & 
+                    (df['Year'].isin(years)) & 
+                    (df['Medal'] != 'No Medal') & 
+                    (df['Medal'].notna())]
+    medals = df_chn.groupby('Year')['Medal'].count()
     plt.figure(figsize=(10, 6)) # Ảnh to
     plt.bar(medals.index.astype(str), medals.values, color='red')
     plt.title('Lợi thế sân nhà TQ')
@@ -98,11 +99,12 @@ def plot_vietnam_stats(df):
     sns.barplot(x=top_sports.values, y=top_sports.index, ax=ax2, hue=top_sports.index, palette='OrRd', legend=False)
     
     plt.tight_layout()
-    plt.show() 
+    plt.show()
 
 def plot_vietnam_details(df):
     df_vn = df[df['NOC'] == 'VIE']
-    medals = df_vn[df_vn['Medal'].isin(['Gold', 'Silver', 'Bronze'])].sort_values('Year')
+    real_medals = ['Gold', 'Silver', 'Bronze']
+    medals = df_vn[df_vn['Medal'].isin(real_medals)].sort_values('Year')
     cell_text = [[row['Year'], row['Name'], row['Sport'], row['Medal']] for _, row in medals.iterrows()]
     if not cell_text: return
     fig, ax = plt.subplots(figsize=(12, len(cell_text)*0.5 + 2))
