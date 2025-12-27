@@ -1,3 +1,7 @@
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
 def clean_data(df):
     """
     Thực hiện làm sạch dữ liệu:
@@ -6,19 +10,20 @@ def clean_data(df):
     - Xử lý giá trị thiếu (NA)
     - Sửa gán nhãn sai
     - Xử lý outlier
-    - Chuẩn hóa dữ liệu số
+    - Chuẩn hóa dữ liệu số (dùng func data_scaled)
     """
     # 1. Xóa dòng trùng
     df = df.drop_duplicates()
-
+    
+    numeric_cols = ["Age", "Height", "Weight"]
+    numeric_cols = [col for col in numeric_cols if col in df.columns]
     # 2. Xử lí định dạng sai
-    for col in ["Age", "Height", "Weight"]:
+    for col in numeric_cols:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
     
     # 3. Xử lí dữ liệu thiếu
     # Xử lý cột số (nếu như giá trị là NA thì sẽ trả về mean của cột số)
-    numeric_cols = df.select_dtypes(include=np.number).columns
     for col in numeric_cols:
         df[col] = df[col].fillna(df[col].mean())
 
@@ -42,7 +47,7 @@ def clean_data(df):
         })
 
     # 5. Xử lí outlier bằng phương pháp IQR (những giá trị bất thường, quá lớn hoặc quá nhỏ so với phần lớn các dữ liệu còn lại)
-    for col in ["Age", "Height", "Weight"]:
+    for col in numeric_cols:
         if col in df.columns:
             Q1 = df[col].quantile(0.25)
             Q3 = df[col].quantile(0.75)
@@ -54,11 +59,4 @@ def clean_data(df):
             # Chặn biên (capping)
             df[col] = df[col].clip(lower, upper)
 
-    # 6. Chuẩn hóa cột số (Dùng để đưa nhiều cột số về một thang đo chung bằng cách đo mức độ lệch của từng giá trị so với giá trị trung bình của từng cột)
-    scaler = StandardScaler()
-    df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
-
     return df
-
-
-
