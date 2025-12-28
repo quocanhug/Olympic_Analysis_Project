@@ -75,8 +75,7 @@ def clean_data(df):
             upper = Q3 + 1.5 * IQR
 
             # Chặn biên (capping)
-            df[col] = df[col].clip(lower, upper)
-            df[col] = df[col].round(2)
+            df.loc[:, col] = df[col].clip(lower, upper).round(2)
 
     return df
 
