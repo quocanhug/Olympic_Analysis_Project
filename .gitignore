@@ -1,0 +1,3 @@
+# Bỏ qua thư mục rác của Python
+__pycache__/
+*.pyc
