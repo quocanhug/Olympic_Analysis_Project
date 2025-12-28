@@ -81,23 +81,6 @@ def clean_data(df):
 
     return df
 
-
-def scale_data(df):
-    """
-    Chuẩn hóa các cột số (trừ ID và year nếu có)
-    Trả về DataFrame đã chuẩn hóa
-    """
-    df_scaled = df.copy()
-
-    numeric_cols = ["Age", "Height", "Weight"]
-    numeric_cols = [col for col in numeric_cols if col in df.columns]
-
-    scaler = StandardScaler()
-    df_scaled[numeric_cols] = scaler.fit_transform(df_scaled[numeric_cols])
-
-    return df_scaled
-
-
 def clean_team_name(df):
     """
     Làm sạch cột 'Team' bằng cách loại bỏ các ký tự số và dấu gạch ngang thừa ở cuối.
@@ -138,6 +121,23 @@ def extract_nickname(df):
     new_cols_order = cols[:name_index + 1] + \
         ['Nickname'] + cols[name_index + 1:]
     return df[new_cols_order]
+
+
+def scale_data(df):
+    """
+    Chuẩn hóa các cột số (trừ ID và year nếu có)
+    Trả về DataFrame đã chuẩn hóa
+    """
+    df_scaled = df.copy()
+
+    numeric_cols = ["Age", "Height", "Weight"]
+    numeric_cols = [col for col in numeric_cols if col in df.columns]
+
+    scaler = StandardScaler()
+    df_scaled[numeric_cols] = scaler.fit_transform(df_scaled[numeric_cols])
+
+    return df_scaled
+
 
 # --- HÀM LOAD DỮ LIỆU (CACHE ĐỂ CHẠY NHANH HƠN) ---
 
