@@ -1,10 +1,10 @@
+from modules.data_cleaning import scale_data
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
 from matplotlib.colors import ListedColormap
-from sklearn.preprocessing import StandardScaler
 
 # --- CẤU HÌNH GIAO DIỆN ---
 
@@ -87,72 +87,64 @@ def plot_physical_distribution(df):
     return fig
 
 
-from matplotlib.lines import Line2D
-
 def plot_physical_comparison_by_sport(df):
-    df_plot = df.dropna(subset=['Height', 'Weight', 'Sport']).copy()
+    """ So sánh thể chất giữa các môn (Boxplot) """
+    top_sports = df['Sport'].value_counts().head(10).index
+    df_top = df[df['Sport'].isin(top_sports)]
 
-    if len(df_plot) == 0:
-        return None
+    fig, axes = plt.subplots(2, 1, figsize=(12, 12))
 
-    top_sports = df_plot['Sport'].value_counts().nlargest(30).index
-    df_filtered = df_plot[df_plot['Sport'].isin(top_sports)]
+    sns.boxplot(data=df_top, x='Sport', y='Height',
+                ax=axes[0], hue='Sport', palette='viridis', legend=False)
+    axes[0].tick_params(axis='x', rotation=45)
+    axes[0].set_title('So sánh Chiều cao')
 
-    fig, ax1 = plt.subplots(figsize=(16, 8))
-    ax2 = ax1.twinx()
-
-    color_height = '#E37222'
-    color_weight = '#07889B'
-
-    sns.boxplot(data=df_filtered, x='Sport', y='Height', ax=ax1,
-                color=color_height, boxprops=dict(alpha=0.5), 
-                showfliers=True)
-
-    sns.boxplot(data=df_filtered, x='Sport', y='Weight', ax=ax2,
-                color=color_weight, boxprops=dict(alpha=0.5), 
-                showfliers=True)
-
-    ax1.set_ylabel('Chiều cao (cm)', color=color_height, fontsize=12, fontweight='bold')
-    ax1.tick_params(axis='y', labelcolor=color_height)
-    
-    # Sửa lỗi mất tên môn thể thao:
-    ax1.set_xlabel('Môn thể thao', fontsize=12)
-    ax1.tick_params(axis='x', rotation=90) # Xoay nhãn an toàn hơn
-    
-    ax2.set_ylabel('Cân nặng (kg)', color=color_weight, fontsize=12, fontweight='bold')
-    ax2.tick_params(axis='y', labelcolor=color_weight)
-
-    plt.title('So sánh Chiều cao & Cân nặng theo môn thể thao', fontsize=16, pad=20)
-    ax1.grid(True, linestyle='--', alpha=0.3)
-
-    legend_elements = [
-        Line2D([0], [0], color=color_height, lw=4, label='Chiều cao (cm)'),
-        Line2D([0], [0], color=color_weight, lw=4, label='Cân nặng (kg)')
-    ]
-    ax1.legend(handles=legend_elements, loc='upper right', frameon=True, facecolor='white')
+    sns.boxplot(data=df_top, x='Sport', y='Weight',
+                ax=axes[1], hue='Sport', palette='magma', legend=False)
+    axes[1].tick_params(axis='x', rotation=45)
+    axes[1].set_title('So sánh Cân nặng')
 
     plt.tight_layout()
     return fig
 
 # --- NHÓM BIỂU ĐỒ NÂNG CAO ---
+
+
+# Đảm bảo bạn đã import các thư viện cần thiết ở đầu file
+# Import hàm scale_data từ module của bạn (ví dụ file data_cleaning.py)
+
+
 def plot_athlete_clustering(df):
-    """ Phân cụm VĐV (KMeans) """
+    """ 
+    Phân cụm VĐV (KMeans) 
+    """
+    # 1. Chuẩn bị dữ liệu thô: Chỉ lấy cột cần thiết và bỏ NA
     df_cluster = df[['Age', 'Weight']].dropna().copy()
+
     if len(df_cluster) == 0:
         return None
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(df_cluster)
+    # 2. THAY ĐỔI: Sử dụng hàm scale_data có sẵn
+    # Hàm scale_data sẽ tự động nhận diện cột Age và Weight để chuẩn hóa
+    df_scaled_result = scale_data(df_cluster)
+
+    # Lấy giá trị đã scale ra để đưa vào mô hình KMeans
+    X_scaled = df_scaled_result[['Age', 'Weight']].values
+
+    # 3. Chạy thuật toán KMeans (Giữ nguyên logic cũ)
     kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
     df_cluster['Cluster'] = kmeans.fit_predict(X_scaled)
 
+    # 4. Sắp xếp lại nhãn (Cluster Label) để màu sắc nhất quán
+    # (Logic: Nhóm nhẹ cân nhất -> 0, nặng nhất -> 2)
     cluster_means = df_cluster.groupby(
         'Cluster')['Weight'].mean().sort_values()
     mapping = {original: new for new,
                original in enumerate(cluster_means.index)}
     df_cluster['Sorted_Cluster'] = df_cluster['Cluster'].map(mapping)
 
-    custom_colors = ['#FFD700', '#008080', '#4B0082']
+    # 5. Vẽ biểu đồ (Giữ nguyên logic cũ)
+    custom_colors = ['#FFD700', '#008080', '#4B0082']  # Vàng, Xanh, Tím
     cmap = ListedColormap(custom_colors)
 
     fig = plt.figure(figsize=(10, 6))
@@ -162,11 +154,14 @@ def plot_athlete_clustering(df):
 
     handles, _ = scatter.legend_elements()
     legend_labels = [
-        'Nhóm 1: Nhẹ/Trẻ (Vàng)', 'Nhóm 2: Trung bình (Xanh)', 'Nhóm 3: Nặng/Già (Tím)']
+        'Nhóm 1: Nhẹ/Trẻ (Vàng)',
+        'Nhóm 2: Trung bình (Xanh)',
+        'Nhóm 3: Nặng/Già (Tím)'
+    ]
     plt.legend(handles, legend_labels,
                title="Phân nhóm thể trạng", loc='upper right')
 
-    plt.title('Phân cụm VĐV theo Tuổi và Cân nặng ')
+    plt.title('Phân cụm VĐV theo Tuổi và Cân nặng')
     plt.xlabel('Tuổi (Age)')
     plt.ylabel('Cân nặng (Weight) - kg')
 
