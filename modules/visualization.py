@@ -87,29 +87,54 @@ def plot_physical_distribution(df):
     return fig
 
 
+from matplotlib.lines import Line2D
+
 def plot_physical_comparison_by_sport(df):
-    """ So sánh thể chất giữa các môn (Boxplot) """
-    top_sports = df['Sport'].value_counts().head(10).index
-    df_top = df[df['Sport'].isin(top_sports)]
+    df_plot = df.dropna(subset=['Height', 'Weight', 'Sport']).copy()
 
-    fig, axes = plt.subplots(2, 1, figsize=(12, 12))
+    if len(df_plot) == 0:
+        return None
 
-    sns.boxplot(data=df_top, x='Sport', y='Height',
-                ax=axes[0], hue='Sport', palette='viridis', legend=False)
-    axes[0].tick_params(axis='x', rotation=45)
-    axes[0].set_title('So sánh Chiều cao giữa các môn')
+    top_sports = df_plot['Sport'].value_counts().nlargest(30).index
+    df_filtered = df_plot[df_plot['Sport'].isin(top_sports)]
 
-    sns.boxplot(data=df_top, x='Sport', y='Weight',
-                ax=axes[1], hue='Sport', palette='magma', legend=False)
-    axes[1].tick_params(axis='x', rotation=45)
-    axes[1].set_title('So sánh Cân nặng giữa các môn')
+    fig, ax1 = plt.subplots(figsize=(16, 8))
+    ax2 = ax1.twinx()
+
+    color_height = '#E37222'
+    color_weight = '#07889B'
+
+    sns.boxplot(data=df_filtered, x='Sport', y='Height', ax=ax1,
+                color=color_height, boxprops=dict(alpha=0.5), 
+                showfliers=True)
+
+    sns.boxplot(data=df_filtered, x='Sport', y='Weight', ax=ax2,
+                color=color_weight, boxprops=dict(alpha=0.5), 
+                showfliers=True)
+
+    ax1.set_ylabel('Chiều cao (cm)', color=color_height, fontsize=12, fontweight='bold')
+    ax1.tick_params(axis='y', labelcolor=color_height)
+    
+    # Sửa lỗi mất tên môn thể thao:
+    ax1.set_xlabel('Môn thể thao', fontsize=12)
+    ax1.tick_params(axis='x', rotation=90) # Xoay nhãn an toàn hơn
+    
+    ax2.set_ylabel('Cân nặng (kg)', color=color_weight, fontsize=12, fontweight='bold')
+    ax2.tick_params(axis='y', labelcolor=color_weight)
+
+    plt.title('So sánh Chiều cao & Cân nặng theo môn thể thao', fontsize=16, pad=20)
+    ax1.grid(True, linestyle='--', alpha=0.3)
+
+    legend_elements = [
+        Line2D([0], [0], color=color_height, lw=4, label='Chiều cao (cm)'),
+        Line2D([0], [0], color=color_weight, lw=4, label='Cân nặng (kg)')
+    ]
+    ax1.legend(handles=legend_elements, loc='upper right', frameon=True, facecolor='white')
 
     plt.tight_layout()
     return fig
 
 # --- NHÓM BIỂU ĐỒ NÂNG CAO ---
-
-
 def plot_athlete_clustering(df):
     """ Phân cụm VĐV (KMeans) """
     df_cluster = df[['Age', 'Weight']].dropna().copy()
