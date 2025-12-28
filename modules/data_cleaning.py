@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 pd.options.mode.chained_assignment = None
 
 
+@st.cache_data
 def load_data(file_path):
     # file_path là đường dẫn chứa file csv: "data/athlete_events.csv"
     try:
@@ -76,7 +77,7 @@ def clean_data(df):
             upper = Q3 + 1.5 * IQR
 
             # Chặn biên (capping)
-            df.loc[:, col] = df[col].clip(lower, upper).round(2) 
+            df.loc[:, col] = df[col].clip(lower, upper).round(2)
 
     return df
 
