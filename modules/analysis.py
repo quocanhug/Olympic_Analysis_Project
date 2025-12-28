@@ -1,47 +1,6 @@
 import pandas as pd
 import numpy as np
 
-
-def clean_team_name(df):
-    """
-    Làm sạch cột 'Team' bằng cách loại bỏ các ký tự số và dấu gạch ngang thừa ở cuối.
-    Ví dụ: 'China-1' -> 'China', 'Denmark/Sweden-2' -> 'Denmark/Sweden'.
-    Mục đích: Giúp thống kê thành tích quốc gia chính xác hơn, tránh việc một nước bị chia thành nhiều team nhỏ.
-    """
-    df = df.copy()
-    df['Team'] = df['Team'].str.replace(r'-\d+', '', regex=True)
-    return df
-
-
-def clean_event_name(df):
-    """
-    Làm sạch cột 'Event' bằng cách cắt bỏ tên môn thể thao (Sport) bị lặp lại ở đầu.
-    Ví dụ: Sport='Basketball', Event='Basketball Men's Basketball' -> 'Men's Basketball'.
-    Mục đích: Làm ngắn gọn tên sự kiện, giúp bảng biểu hiển thị đẹp và dễ đọc hơn.
-    """
-    df = df.copy()
-    df['Event'] = df.apply(lambda x: x['Event'][len(x['Sport']):].strip()
-                           if x['Event'].startswith(x['Sport']) else x['Event'], axis=1)
-    return df
-
-
-def extract_nickname(df):
-    """
-    Trích xuất biệt danh (Nickname) từ cột 'Name' ra một cột riêng.
-    Thường biệt danh nằm trong dấu ngoặc kép "" hoặc đôi khi là ngoặc đơn ().
-    Mục đích: Tách biệt danh để phân tích hoặc hiển thị tên vận động viên gọn gàng hơn.
-    """
-    df = df.copy()
-    nickname_quotes = df['Name'].str.extract(r'\"(.*?)\"', expand=False)
-    nickname_parens = df['Name'].str.extract(r'\((.*?)\)', expand=False)
-    df['Nickname'] = nickname_quotes.combine_first(nickname_parens)
-    cols = list(df.columns)
-    if 'Nickname' in cols:
-        cols.remove('Nickname')
-    name_index = cols.index('Name')
-    new_cols_order = cols[:name_index + 1] + \
-        ['Nickname'] + cols[name_index + 1:]
-    return df[new_cols_order]
 # loc du lieu
 
 
