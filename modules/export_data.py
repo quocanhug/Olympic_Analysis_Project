@@ -21,6 +21,14 @@ def export_to_csv(df, file_path, index=False):
         True nếu xuất thành công, False nếu có lỗi
     """
     try:
+        # Kiểm tra DataFrame hợp lệ
+        if df is None:
+            print("Lỗi: DataFrame là None, không thể xuất!")
+            return False
+        
+        if df.empty:
+            print("Cảnh báo: DataFrame rỗng, vẫn sẽ tạo file CSV trống.")
+        
         # Tạo thư mục nếu chưa tồn tại
         directory = os.path.dirname(file_path)
         if directory and not os.path.exists(directory):
@@ -55,6 +63,14 @@ def export_to_excel(df, file_path, sheet_name='Sheet1', index=False):
         True nếu xuất thành công, False nếu có lỗi
     """
     try:
+        # Kiểm tra DataFrame hợp lệ
+        if df is None:
+            print("Lỗi: DataFrame là None, không thể xuất!")
+            return False
+        
+        if df.empty:
+            print("Cảnh báo: DataFrame rỗng, vẫn sẽ tạo file Excel trống.")
+        
         # Tạo thư mục nếu chưa tồn tại
         directory = os.path.dirname(file_path)
         if directory and not os.path.exists(directory):
@@ -89,6 +105,14 @@ def export_to_json(df, file_path, orient='records', index=False):
         True nếu xuất thành công, False nếu có lỗi
     """
     try:
+        # Kiểm tra DataFrame hợp lệ
+        if df is None:
+            print("Lỗi: DataFrame là None, không thể xuất!")
+            return False
+        
+        if df.empty:
+            print("Cảnh báo: DataFrame rỗng, vẫn sẽ tạo file JSON trống.")
+        
         # Tạo thư mục nếu chưa tồn tại
         directory = os.path.dirname(file_path)
         if directory and not os.path.exists(directory):
@@ -122,16 +146,34 @@ def export_multiple_sheets_to_excel(dataframes_dict, file_path, index=False):
         True nếu xuất thành công, False nếu có lỗi
     """
     try:
+        # Kiểm tra dictionary hợp lệ
+        if not dataframes_dict:
+            print("Lỗi: Dictionary rỗng, không có dữ liệu để xuất!")
+            return False
+        
+        # Lọc bỏ các DataFrame None hoặc rỗng
+        valid_sheets = {}
+        for sheet_name, df in dataframes_dict.items():
+            if df is not None:
+                if df.empty:
+                    print(f"Cảnh báo: Sheet '{sheet_name}' rỗng, sẽ bỏ qua.")
+                else:
+                    valid_sheets[sheet_name] = df
+        
+        if not valid_sheets:
+            print("Lỗi: Không có DataFrame hợp lệ nào để xuất!")
+            return False
+        
         # Tạo thư mục nếu chưa tồn tại
         directory = os.path.dirname(file_path)
         if directory and not os.path.exists(directory):
             os.makedirs(directory)
         
         with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-            for sheet_name, df in dataframes_dict.items():
+            for sheet_name, df in valid_sheets.items():
                 df.to_excel(writer, sheet_name=sheet_name, index=index)
         
-        print(f"Đã xuất {len(dataframes_dict)} sheet(s) ra file Excel: {file_path}")
+        print(f"Đã xuất {len(valid_sheets)} sheet(s) ra file Excel: {file_path}")
         return True
     except Exception as e:
         print(f"Lỗi khi xuất file Excel nhiều sheet: {e}")
@@ -140,6 +182,8 @@ def export_multiple_sheets_to_excel(dataframes_dict, file_path, index=False):
 
 def export_analysis_results(df_medal_tally=None, df_gender=None, df_age=None, 
                             df_physique=None, df_dominant_sports=None, 
+                            df_vietnam_participation=None, df_vietnam_medals=None,
+                            df_country_performance=None, df_physical_summary=None,
                             output_dir='output', prefix='analysis'):
     """
     Xuất tất cả kết quả phân tích vào một file Excel với nhiều sheet.
@@ -156,6 +200,14 @@ def export_analysis_results(df_medal_tally=None, df_gender=None, df_age=None,
         Kết quả từ analyze_physique_all_athletes()
     df_dominant_sports : pandas.DataFrame, optional
         Kết quả từ analyze_dominant_sports()
+    df_vietnam_participation : pandas.DataFrame, optional
+        Kết quả từ analyze_vietnam_participation()
+    df_vietnam_medals : pandas.DataFrame, optional
+        Kết quả từ get_vietnam_medals()
+    df_country_performance : pandas.DataFrame, optional
+        Kết quả từ get_country_performance_and_hosts() (chỉ DataFrame, không bao gồm list)
+    df_physical_summary : pandas.DataFrame, optional
+        Kết quả từ analyze_physical_summary() (sẽ được chuyển đổi thành DataFrame)
     output_dir : str, default 'output'
         Thư mục chứa file xuất
     prefix : str, default 'analysis'
@@ -178,20 +230,36 @@ def export_analysis_results(df_medal_tally=None, df_gender=None, df_age=None,
         # Tạo dictionary các sheet
         sheets = {}
         
-        if df_medal_tally is not None:
+        if df_medal_tally is not None and not df_medal_tally.empty:
             sheets['Medal Tally'] = df_medal_tally
         
-        if df_gender is not None:
+        if df_gender is not None and not df_gender.empty:
             sheets['Gender Participation'] = df_gender
         
-        if df_age is not None:
+        if df_age is not None and not df_age.empty:
             sheets['Age Analysis'] = df_age
         
-        if df_physique is not None:
+        if df_physique is not None and not df_physique.empty:
             sheets['Physique Stats'] = df_physique
         
-        if df_dominant_sports is not None:
+        if df_dominant_sports is not None and not df_dominant_sports.empty:
             sheets['Dominant Sports'] = df_dominant_sports
+        
+        if df_vietnam_participation is not None and not df_vietnam_participation.empty:
+            sheets['Vietnam Participation'] = df_vietnam_participation
+        
+        if df_vietnam_medals is not None and not df_vietnam_medals.empty:
+            sheets['Vietnam Medals'] = df_vietnam_medals
+        
+        if df_country_performance is not None and not df_country_performance.empty:
+            sheets['Country Performance'] = df_country_performance
+        
+        if df_physical_summary is not None:
+            # Chuyển đổi dict thành DataFrame nếu cần
+            if isinstance(df_physical_summary, dict):
+                df_physical_summary = pd.DataFrame([df_physical_summary])
+            if not df_physical_summary.empty:
+                sheets['Physical Summary'] = df_physical_summary
         
         if not sheets:
             print("Không có dữ liệu nào để xuất!")
@@ -226,6 +294,11 @@ def export_filtered_data(df, file_path, format='csv', **kwargs):
     bool
         True nếu xuất thành công, False nếu có lỗi
     """
+    # Kiểm tra DataFrame hợp lệ
+    if df is None:
+        print("Lỗi: DataFrame là None, không thể xuất!")
+        return False
+    
     format = format.lower()
     
     if format == 'csv':
@@ -237,3 +310,55 @@ def export_filtered_data(df, file_path, format='csv', **kwargs):
     else:
         print(f"Định dạng '{format}' không được hỗ trợ. Chỉ hỗ trợ: csv, excel, json")
         return False
+
+
+def export_vietnam_analysis(df_vietnam_participation=None, df_vietnam_medals=None,
+                            output_dir='output', prefix='vietnam_analysis'):
+    """
+    Xuất các phân tích về Việt Nam vào một file Excel.
+    
+    Parameters:
+    -----------
+    df_vietnam_participation : pandas.DataFrame, optional
+        Kết quả từ analyze_vietnam_participation()
+    df_vietnam_medals : pandas.DataFrame, optional
+        Kết quả từ get_vietnam_medals()
+    output_dir : str, default 'output'
+        Thư mục chứa file xuất
+    prefix : str, default 'vietnam_analysis'
+        Tiền tố tên file
+    
+    Returns:
+    --------
+    str or None
+        Đường dẫn file đã xuất nếu thành công, None nếu có lỗi
+    """
+    try:
+        # Tạo thư mục output nếu chưa tồn tại
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        
+        # Tạo tên file với timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_path = os.path.join(output_dir, f"{prefix}_{timestamp}.xlsx")
+        
+        # Tạo dictionary các sheet
+        sheets = {}
+        
+        if df_vietnam_participation is not None and not df_vietnam_participation.empty:
+            sheets['Vietnam Participation'] = df_vietnam_participation
+        
+        if df_vietnam_medals is not None and not df_vietnam_medals.empty:
+            sheets['Vietnam Medals'] = df_vietnam_medals
+        
+        if not sheets:
+            print("Không có dữ liệu về Việt Nam để xuất!")
+            return None
+        
+        # Xuất ra Excel
+        export_multiple_sheets_to_excel(sheets, file_path)
+        return file_path
+        
+    except Exception as e:
+        print(f"Lỗi khi xuất phân tích Việt Nam: {e}")
+        return None
