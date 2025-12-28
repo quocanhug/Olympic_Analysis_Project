@@ -68,6 +68,7 @@ def clean_data(df):
     for col in numeric_cols:
         if col in df.columns:
             Q1 = df[col].quantile(0.25)
+            Q2 = df[col].quantile(0.50)
             Q3 = df[col].quantile(0.75)
             IQR = Q3 - Q1
 
