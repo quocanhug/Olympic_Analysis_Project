@@ -1,4 +1,4 @@
-# chạy bằng lệnh trên terminal: 
+# chạy bằng lệnh trên terminal:
 # D:\Olympic_Analysis_Project\.venv\Scripts\python.exe -m streamlit run UI.py
 import streamlit as st
 import pandas as pd
@@ -87,16 +87,8 @@ def show_explanation(title, content):
 
 
 # --- 2. LOAD DATA ---
-@st.cache_data
-def get_data():
-    file_path = 'data/athlete_events.csv'
-    if not os.path.exists(file_path):
-        st.error(f"Không tìm thấy file: {file_path}")
-        return None
-    return dc.load_and_clean_data(file_path)
-
-
-df = get_data()
+df_unclean = dc.load_data("data/athlete_events.csv")
+df = dc.clean_data(df_unclean)
 
 # --- 3. GIAO DIỆN CHÍNH ---
 if df is not None:
@@ -116,7 +108,8 @@ if df is not None:
     # NHÓM 1: DỮ LIỆU & BỘ LỌC
     # =========================================================================
     if menu_group == "1. Dữ liệu & Bộ lọc":
-        sub_menu = st.sidebar.radio("Chi tiết:", ["Tổng quan dữ liệu", "Bộ lọc Đa năng"])
+        sub_menu = st.sidebar.radio(
+            "Chi tiết:", ["Tổng quan dữ liệu", "Bộ lọc Đa năng"])
 
         # --- 1.1 TỔNG QUAN ---
         if sub_menu == "Tổng quan dữ liệu":
@@ -148,31 +141,45 @@ if df is not None:
                 st.subheader("Tiêu chí lọc")
                 c1, c2, c3 = st.columns(3)
                 with c1:
-                    f_team = st.selectbox("Quốc gia:", ["Tất cả"] + sorted(df['Team'].unique().tolist()))
-                    f_noc = st.selectbox("Mã NOC:", ["Tất cả"] + sorted(df['NOC'].unique().tolist()))
+                    f_team = st.selectbox(
+                        "Quốc gia:", ["Tất cả"] + sorted(df['Team'].unique().tolist()))
+                    f_noc = st.selectbox(
+                        "Mã NOC:", ["Tất cả"] + sorted(df['NOC'].unique().tolist()))
                 with c2:
-                    f_sport = st.selectbox("Môn thể thao:", ["Tất cả"] + sorted(df['Sport'].unique().tolist()))
-                    f_city = st.selectbox("Thành phố:", ["Tất cả"] + sorted(df['City'].unique().tolist()))
+                    f_sport = st.selectbox(
+                        "Môn thể thao:", ["Tất cả"] + sorted(df['Sport'].unique().tolist()))
+                    f_city = st.selectbox(
+                        "Thành phố:", ["Tất cả"] + sorted(df['City'].unique().tolist()))
                 with c3:
-                    f_season = st.selectbox("Mùa giải:", ["Tất cả", "Summer", "Winter"])
+                    f_season = st.selectbox(
+                        "Mùa giải:", ["Tất cả", "Summer", "Winter"])
                     f_sex = st.selectbox("Giới tính:", ["Tất cả", "M", "F"])
 
                 st.markdown("---")
                 c4, c5, c6, c7 = st.columns(4)
-                with c4: f_year_min, f_year_max = st.slider("Giai đoạn:", 1896, 2016, (1896, 2016))
-                with c5: f_age = st.number_input("Tuổi (>=):", 0, 100, 0)
-                with c6: f_height = st.number_input("Chiều cao (>= cm):", 0, 250, 0)
-                with c7: f_weight = st.number_input("Cân nặng (>= kg):", 0, 200, 0)
+                with c4:
+                    f_year_min, f_year_max = st.slider(
+                        "Giai đoạn:", 1896, 2016, (1896, 2016))
+                with c5:
+                    f_age = st.number_input("Tuổi (>=):", 0, 100, 0)
+                with c6:
+                    f_height = st.number_input("Chiều cao (>= cm):", 0, 250, 0)
+                with c7:
+                    f_weight = st.number_input("Cân nặng (>= kg):", 0, 200, 0)
 
                 # Đã bỏ icon tên lửa ở nút bấm
                 if st.form_submit_button("Lọc ngay"):
                     res = ana.filter_data_number(df, age=f_age, height=f_height, weight=f_weight,
                                                  sex=(f_sex if f_sex != "Tất cả" else None))
-                    res = res[(res['Year'] >= f_year_min) & (res['Year'] <= f_year_max)]
+                    res = res[(res['Year'] >= f_year_min) &
+                              (res['Year'] <= f_year_max)]
                     res = ana.filter_data_string(res, team=(f_team if f_team != "Tất cả" else None),
-                                                 noc=(f_noc if f_noc != "Tất cả" else None),
-                                                 season=(f_season if f_season != "Tất cả" else None),
-                                                 city=(f_city if f_city != "Tất cả" else None),
+                                                 noc=(f_noc if f_noc !=
+                                                      "Tất cả" else None),
+                                                 season=(
+                                                     f_season if f_season != "Tất cả" else None),
+                                                 city=(f_city if f_city !=
+                                                       "Tất cả" else None),
                                                  sport=(f_sport if f_sport != "Tất cả" else None))
 
                     st.success(f"Tìm thấy **{len(res)}** kết quả.")
@@ -185,7 +192,7 @@ if df is not None:
         st.sidebar.header("Chọn loại thống kê")
         stats_option = st.sidebar.radio("Nội dung:",
                                         ["Huy chương (Bảng tổng)", "Giới tính & Tuổi", "Thể chất (Chiều cao/Cân nặng)",
-                                         "Hiệu ứng Sân nhà", "Thống kê Việt Nam"])
+                                         "Chính trị trong thể thao", "Thống kê Việt Nam"])
 
         if stats_option == "Huy chương (Bảng tổng)":
             st.title("Bảng Tổng sắp Huy chương Toàn đoàn")  # Đã bỏ icon
@@ -208,8 +215,10 @@ if df is not None:
 
             gender_stats = ana.analyze_gender_participation(df)
             if 'Female_Ratio (%)' not in gender_stats.columns and 'F' in gender_stats.columns:
-                gender_stats['Total'] = gender_stats.get('M', 0) + gender_stats.get('F', 0)
-                gender_stats['Female_Ratio (%)'] = round((gender_stats['F'] / gender_stats['Total']) * 100, 2)
+                gender_stats['Total'] = gender_stats.get(
+                    'M', 0) + gender_stats.get('F', 0)
+                gender_stats['Female_Ratio (%)'] = round(
+                    (gender_stats['F'] / gender_stats['Total']) * 100, 2)
 
             st.dataframe(gender_stats, use_container_width=True)
 
@@ -246,21 +255,24 @@ if df is not None:
             sport_phys = ana.analyze_physique_by_sport(df)
             st.dataframe(sport_phys, use_container_width=True, height=600)
 
-        elif stats_option == "Hiệu ứng Sân nhà":
-            st.title("Dữ liệu Hiệu ứng Sân nhà")  # Đã bỏ icon
+        elif stats_option == "Chính trị trong thể thao":
+            st.title("Dữ liệu Chính trị trong thể thao")  # Đã bỏ icon
             show_explanation("Lợi thế chủ nhà",
                              "Lịch sử chứng minh các nước chủ nhà thường đạt thành tích vượt trội nhờ sự chuẩn bị kỹ lưỡng, "
                              "tâm lý thi đấu hưng phấn và sự cổ vũ của khán giả nhà. Bảng dưới đây giúp bạn kiểm chứng giả thuyết này "
                              "với bất kỳ quốc gia nào.")
 
-            country_code = st.text_input("Nhập mã quốc gia (NOC) để kiểm tra (VD: CHN, USA, GBR):", "CHN")
-            trend, hosts = ana.get_country_performance_and_hosts(df, country_code)
+            country_code = st.text_input(
+                "Nhập mã quốc gia (NOC) để kiểm tra (VD: CHN, USA, GBR):", "CHN")
+            trend, hosts = ana.get_country_performance_and_hosts(
+                df, country_code)
 
             c1, c2 = st.columns([1, 2])
             with c1:
                 st.success(f"Các năm làm chủ nhà: {hosts}")
             with c2:
-                st.info(f"Dữ liệu chi tiết huy chương của {country_code} qua các năm:")
+                st.info(
+                    f"Dữ liệu chi tiết huy chương của {country_code} qua các năm:")
 
             st.dataframe(trend, use_container_width=True, height=500)
 
@@ -288,7 +300,7 @@ if df is not None:
         st.sidebar.header("Chọn loại biểu đồ")
         chart_option = st.sidebar.radio("Nội dung:",
                                         ["Biểu đồ Huy chương", "Biểu đồ Giới tính", "Biểu đồ Thể chất & AI",
-                                         "Biểu đồ Sân nhà", "Biểu đồ Việt Nam"])
+                                         "Biểu đồ Chính trị trong thể thao", "Biểu đồ Việt Nam"])
 
         if chart_option == "Biểu đồ Huy chương":
             st.title("Biểu đồ Top Quốc gia")  # Đã bỏ icon
@@ -315,11 +327,12 @@ if df is not None:
         elif chart_option == "Biểu đồ Thể chất & AI":
             st.title("Phân tích Thể chất & Phân cụm")  # Đã bỏ icon
 
-            tab1, tab2, tab3 = st.tabs(["Phân phối", "So sánh Môn", "Phân cụm AI"])
+            tab1, tab2, tab3 = st.tabs(
+                ["Phân phối", "So sánh Môn", "Phân cụm AI"])
 
             with tab1:
                 st.subheader("Phân phối Tuổi - Chiều cao - Cân nặng")
-                fig1 = vis.plot_physical_distribution(df)
+                fig1 = vis.plot_physical_distribution(df_unclean)
                 st.pyplot(fig1)
                 show_explanation("Phân phối chuẩn",
                                  "Các biểu đồ Histogram cho thấy phần lớn VĐV nằm ở khoảng giữa (phân phối chuẩn). "
@@ -329,23 +342,26 @@ if df is not None:
             with tab2:
                 st.subheader("So sánh thể hình giữa các môn")
                 fig2 = vis.plot_physical_comparison_by_sport(df)
-                if fig2: st.pyplot(fig2)
+                if fig2:
+                    st.pyplot(fig2)
                 show_explanation("Đặc thù môn thể thao",
                                  "Biểu đồ Boxplot này cực kỳ thú vị! Nó cho thấy sự khác biệt rõ rệt về hình thể: "
                                  "VĐV Bóng rổ cao vượt trội, VĐV Cử tạ nặng ký nhưng thấp, trong khi VĐV Thể dục dụng cụ thường nhỏ nhắn. "
                                  "Điều này chứng minh: mỗi môn thể thao chọn lọc ra những kiểu cơ thể tối ưu nhất.")
 
             with tab3:
-                st.subheader("Phân nhóm VĐV (K-Means Clustering)")  # Đã bỏ icon
+                # Đã bỏ icon
+                st.subheader("Phân nhóm VĐV (K-Means Clustering)")
                 with st.spinner("Đang chạy mô hình AI..."):
                     fig3 = vis.plot_athlete_clustering(df)
-                    if fig3: st.pyplot(fig3)
+                    if fig3:
+                        st.pyplot(fig3)
                 show_explanation("Ứng dụng AI (Machine Learning)",
                                  "Sử dụng thuật toán K-Means Clustering để tự động gom nhóm VĐV mà không cần biết trước môn thi đấu. "
                                  "Máy tính tự nhận ra các cụm: Nhóm 'Nhẹ cân/Nhỏ người' (thường là chạy đường dài, thể dục), "
                                  "nhóm 'Cao lớn' và nhóm 'Cơ bắp'. Đây là ví dụ về cách Khoa học dữ liệu tìm ra các mẫu (pattern) ẩn.")
 
-        elif chart_option == "Biểu đồ Sân nhà":
+        elif chart_option == "Biểu đồ Chính trị trong thể thao":
             st.title("Hiệu ứng Lợi thế Sân nhà")  # Đã bỏ icon
 
             col1, col2 = st.columns(2)
@@ -373,14 +389,16 @@ if df is not None:
             if not vn_stats.empty:
                 st.subheader("Số lượng VĐV qua các năm")
                 fig_vn = vis.plot_vietnam_stats(df)
-                if fig_vn: st.pyplot(fig_vn)
+                if fig_vn:
+                    st.pyplot(fig_vn)
                 show_explanation("Sự phát triển",
                                  "Số lượng VĐV Việt Nam tham dự Olympic có xu hướng tăng dần, thể hiện sự hội nhập sâu rộng. "
                                  "Từ chỗ chỉ có vài đại diện, chúng ta đã có những đoàn thể thao đông đảo hơn ở các kỳ gần đây.")
 
                 st.subheader("Bảng vàng thành tích (Visual)")
                 fig_det = vis.plot_vietnam_details(df)
-                if fig_det: st.pyplot(fig_det)
+                if fig_det:
+                    st.pyplot(fig_det)
                 show_explanation("Niềm tự hào dân tộc",
                                  "Bảng danh sách này vinh danh những cột mốc lịch sử: Tấm HCB đầu tiên của Trần Hiếu Ngân (2000), "
                                  "và đỉnh cao là tấm HCV của Hoàng Xuân Vinh (2016).")
