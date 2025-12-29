@@ -95,7 +95,7 @@ except Exception as e:
 if df is not None:
     st.sidebar.title("DANH MỤC")
 
-    # Menu chính (Đã sửa Title Case)
+    # Menu chính (Title Case)
     menu_group = st.sidebar.radio(
         "CHỌN CHỨC NĂNG:",
         ["1. Dữ Liệu & Bộ Lọc",
@@ -220,6 +220,7 @@ if df is not None:
     # =========================================================================
     elif menu_group == "2. Bảng Thống Kê (Analysis)":
         st.sidebar.header("Chọn Loại Thống Kê")
+        # Đã loại bỏ "Thế Mạnh Thể Thao (Dominant Sports)" khỏi danh sách
         stats_option = st.sidebar.radio("Nội Dung:",
                                         ["Huy Chương (Bảng Tổng)",
                                          "Giới Tính & Tuổi",
