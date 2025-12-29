@@ -239,38 +239,35 @@ scale_data(df) → DataFrame (đã chuẩn hóa)
 
 #### 6.2. Xuất cơ bản
 
-- **`export_to_csv()`:** Xuất DataFrame ra file CSV
-  - Tự động tạo thư mục nếu chưa tồn tại
+- **`export_to_csv(df, filename, output_dir=None, index=False)`:** Xuất DataFrame ra file CSV
+  - Tự động tạo thư mục `output` nếu chưa tồn tại
   - Hỗ trợ encoding UTF-8 với BOM (hiển thị tiếng Việt đúng trong Excel)
+  - Kiểm tra DataFrame hợp lệ trước khi xuất
   
-- **`export_to_excel()`:** Xuất DataFrame ra file Excel (1 sheet)
+- **`export_to_excel(df, filename, sheet_name='Sheet1', output_dir=None, index=False)`:** Xuất DataFrame ra file Excel (1 sheet)
   - Hỗ trợ tùy chỉnh tên sheet
   - Sử dụng engine openpyxl
-  
-- **`export_to_json()`:** Xuất DataFrame ra file JSON
-  - Hỗ trợ nhiều định dạng JSON (records, index, values, table, split)
-  - Tự động format với indent
+  - Tự động tạo thư mục output
 
 #### 6.3. Xuất nâng cao
 
-- **`export_multiple_sheets_to_excel()`:** Xuất nhiều DataFrame vào 1 file Excel
+- **`export_multiple_sheets(data_dict, filename, output_dir=None)`:** Xuất nhiều DataFrame vào 1 file Excel
+  - Nhận dictionary với key là tên sheet, value là DataFrame
   - Mỗi DataFrame là một sheet riêng
-  - Tên sheet tùy chỉnh
-  - Tự động lọc bỏ DataFrame rỗng
+  - Tự động lọc bỏ DataFrame None hoặc rỗng
+  - Tự động cắt tên sheet nếu quá 31 ký tự (giới hạn Excel)
   
-- **`export_analysis_results()`:** Xuất tất cả kết quả phân tích
+- **`export_full_report(df_clean, analysis_module)`:** Xuất báo cáo tổng hợp
   - Tự động tạo thư mục `output` nếu chưa có
   - Tạo file Excel với nhiều sheet
-  - Tên file có timestamp (ví dụ: `analysis_20241201_143022.xlsx`)
-  - Hỗ trợ: Medal Tally, Gender Participation, Age Analysis, Physique Stats, Dominant Sports, Vietnam Participation, Vietnam Medals, Country Performance, Physical Summary
+  - Tên file có timestamp (ví dụ: `Olympic_Full_Report_20241201_143022.xlsx`)
+  - Bao gồm: Top 50 Rows, Physical Stats, Vietnam Medals
+  - Sử dụng try-except để xử lý lỗi từng phần phân tích
   
-- **`export_vietnam_analysis()`:** Xuất phân tích về Việt Nam
+- **`export_vietnam_specific(df_clean, analysis_module)`:** Xuất báo cáo chuyên sâu về Việt Nam
   - Tự động tạo thư mục `output`
-  - Tạo file Excel với timestamp
-  
-- **`export_filtered_data()`:** Xuất dữ liệu đã lọc
-  - Hỗ trợ nhiều định dạng: CSV, Excel, JSON
-  - Tự động chọn hàm export phù hợp
+  - Tạo file Excel với tên: `Vietnam_Olympic_History.xlsx`
+  - Bao gồm: Danh Sách Huy Chương, Lịch Sử Tham Gia
 
 #### 6.4. Chạy trực tiếp module
 
@@ -285,25 +282,30 @@ Sẽ tự động:
 
 **Ví dụ sử dụng:**
 ```python
-from modules.export_data import export_to_csv, export_analysis_results, ensure_output_dir
-from modules.analysis import calculate_medal_tally, analyze_gender_participation
+from modules.export_data import export_to_csv, export_to_excel, export_multiple_sheets, export_full_report
+import modules.analysis as analysis_module
 
 # Đảm bảo thư mục output tồn tại
+from modules.export_data import ensure_output_dir
 output_dir = ensure_output_dir('output')
 
 # Xuất đơn giản
-export_to_csv(df_clean, "output/data.csv")
+export_to_csv(df_clean, "data.csv", output_dir='output')
+export_to_excel(df_clean, "data.xlsx", sheet_name="Athletes", output_dir='output')
 
-# Xuất tất cả kết quả phân tích
-medal_tally = calculate_medal_tally(df_clean)
-gender_stats = analyze_gender_participation(df_clean)
-file_path = export_analysis_results(
-    df_medal_tally=medal_tally,
-    df_gender=gender_stats,
-    output_dir='output',
-    prefix='olympic_analysis'
-)
-print(f"Đã xuất ra: {file_path}")
+# Xuất nhiều sheet
+sheets_dict = {
+    'Medal Tally': medal_tally,
+    'Gender Stats': gender_stats
+}
+export_multiple_sheets(sheets_dict, "analysis.xlsx", output_dir='output')
+
+# Xuất báo cáo tổng hợp
+export_full_report(df_clean, analysis_module)
+
+# Xuất báo cáo Việt Nam
+from modules.export_data import export_vietnam_specific
+export_vietnam_specific(df_clean, analysis_module)
 ```
 
 ### Bước 7: Giao diện người dùng (UI) - Chưa hoàn thiện
@@ -351,13 +353,18 @@ print(medal_tally.head(10))
 plot_top_medals(df_clean, top_n=10)
 
 # 5. Xuất kết quả (tự động tạo thư mục output)
-file_path = export_analysis_results(
-    df_medal_tally=medal_tally,
-    df_gender=gender_stats,
-    output_dir='output',
-    prefix='olympic_analysis'
-)
-print(f"Đã xuất kết quả ra: {file_path}")
+from modules.export_data import export_multiple_sheets, export_full_report
+import modules.analysis as analysis_module
+
+# Xuất nhiều sheet
+sheets_dict = {
+    'Medal Tally': medal_tally,
+    'Gender Stats': gender_stats
+}
+export_multiple_sheets(sheets_dict, "olympic_analysis.xlsx", output_dir='output')
+
+# Hoặc xuất báo cáo tổng hợp
+export_full_report(df_clean, analysis_module)
 ```
 
 ### Chạy trực tiếp module export
