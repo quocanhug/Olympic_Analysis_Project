@@ -154,8 +154,9 @@ def export_vietnam_specific(df_clean, analysis_module):
     try:
         vn_medals = analysis_module.get_vietnam_medals(df_clean)
         vn_data['Danh Sách Huy Chương'] = vn_medals
-    except Exception:
-pass
+    except Exception as e:
+        print(f"Lỗi lấy danh sách huy chương: {e}")
+        pass
 
     # Lấy toàn bộ lịch sử tham gia của VN (Lọc thủ công nếu hàm chưa có)
     try:
