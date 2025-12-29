@@ -2,484 +2,217 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# Thư mục output mặc định
+# --- CẤU HÌNH MẶC ĐỊNH ---
 DEFAULT_OUTPUT_DIR = 'output'
 
 def ensure_output_dir(output_dir=None):
     """
-    Đảm bảo thư mục output tồn tại, nếu chưa có thì tạo mới.
-    
-    Parameters:
-    -----------
-    output_dir : str, optional
-        Đường dẫn thư mục output. Nếu None thì dùng DEFAULT_OUTPUT_DIR
-    
-    Returns:
-    --------
-    str
-        Đường dẫn tuyệt đối của thư mục output
+    Kiểm tra và tạo thư mục output nếu chưa tồn tại.
     """
     if output_dir is None:
         output_dir = DEFAULT_OUTPUT_DIR
     
     if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        print(f"Đã tạo thư mục output: {os.path.abspath(output_dir)}")
+        try:
+            os.makedirs(output_dir)
+            print(f"[INFO] Đã tạo thư mục mới: {os.path.abspath(output_dir)}")
+        except OSError as e:
+            print(f"[ERROR] Không thể tạo thư mục {output_dir}: {e}")
+            return None
     
     return os.path.abspath(output_dir)
 
-def export_to_csv(df, file_path, index=False):
-    """
-    Xuất DataFrame ra file CSV.
+# =============================================================================
+# PHẦN 1: CÁC HÀM XUẤT DỮ LIỆU CƠ BẢN (GENERIC EXPORT)
+# =============================================================================
+
+def export_to_csv(df, filename, output_dir=None, index=False):
+    """Xuất DataFrame ra file CSV."""
+    if df is None or df.empty:
+        print(f"[WARNING] Dữ liệu trống, bỏ qua xuất CSV: {filename}")
+        return False
+
+    path = ensure_output_dir(output_dir)
+    full_path = os.path.join(path, filename)
     
-    Parameters:
-    -----------
-    df : pandas.DataFrame
-        DataFrame cần xuất
-    file_path : str
-        Đường dẫn file CSV (ví dụ: "output/data.csv")
-    index : bool, default False
-        Có xuất index hay không
-    
-    Returns:
-    --------
-    bool
-        True nếu xuất thành công, False nếu có lỗi
-    """
     try:
-        # Kiểm tra DataFrame hợp lệ
-        if df is None:
-            print("Lỗi: DataFrame là None, không thể xuất!")
-            return False
-        
-        if df.empty:
-            print("Cảnh báo: DataFrame rỗng, vẫn sẽ tạo file CSV trống.")
-        
-        # Tạo thư mục nếu chưa tồn tại
-        directory = os.path.dirname(file_path)
-        if directory and not os.path.exists(directory):
-            os.makedirs(directory)
-        
-        df.to_csv(file_path, index=index, encoding='utf-8-sig')
-        print(f"Đã xuất dữ liệu ra file CSV: {file_path}")
+        # utf-8-sig để hỗ trợ tiếng Việt trên Excel
+        df.to_csv(full_path, index=index, encoding='utf-8-sig')
+        print(f"[SUCCESS] Đã xuất CSV: {full_path}")
         return True
     except Exception as e:
-        print(f"Lỗi khi xuất file CSV: {e}")
+        print(f"[ERROR] Lỗi khi xuất CSV {filename}: {e}")
         return False
 
+def export_to_excel(df, filename, sheet_name='Sheet1', output_dir=None, index=False):
+    """Xuất DataFrame ra file Excel (1 sheet)."""
+    if df is None or df.empty:
+        print(f"[WARNING] Dữ liệu trống, bỏ qua xuất Excel: {filename}")
+        return False
 
-def export_to_excel(df, file_path, sheet_name='Sheet1', index=False):
-    """
-    Xuất DataFrame ra file Excel.
+    path = ensure_output_dir(output_dir)
+    full_path = os.path.join(path, filename)
     
-    Parameters:
-    -----------
-    df : pandas.DataFrame
-        DataFrame cần xuất
-    file_path : str
-        Đường dẫn file Excel (ví dụ: "output/data.xlsx")
-    sheet_name : str, default 'Sheet1'
-        Tên sheet trong file Excel
-    index : bool, default False
-        Có xuất index hay không
-    
-    Returns:
-    --------
-    bool
-        True nếu xuất thành công, False nếu có lỗi
-    """
     try:
-        # Kiểm tra DataFrame hợp lệ
-        if df is None:
-            print("Lỗi: DataFrame là None, không thể xuất!")
-            return False
-        
-        if df.empty:
-            print("Cảnh báo: DataFrame rỗng, vẫn sẽ tạo file Excel trống.")
-        
-        # Tạo thư mục nếu chưa tồn tại
-        directory = os.path.dirname(file_path)
-        if directory and not os.path.exists(directory):
-            os.makedirs(directory)
-        
-        df.to_excel(file_path, sheet_name=sheet_name, index=index, engine='openpyxl')
-        print(f"Đã xuất dữ liệu ra file Excel: {file_path}")
+        df.to_excel(full_path, sheet_name=sheet_name, index=index, engine='openpyxl')
+        print(f"[SUCCESS] Đã xuất Excel: {full_path}")
         return True
     except Exception as e:
-        print(f"Lỗi khi xuất file Excel: {e}")
+        print(f"[ERROR] Lỗi khi xuất Excel {filename}: {e}")
         return False
 
+def export_multiple_sheets(data_dict, filename, output_dir=None):
+    """
+    Xuất nhiều DataFrame vào 1 file Excel (Mỗi DF là 1 sheet).
+    
+    Args:
+        data_dict (dict): Dạng {'Tên Sheet': dataframe, 'Tên Sheet 2': dataframe2}
+    """
+    valid_data = {k: v for k, v in data_dict.items() if v is not None and not v.empty}
+    
+    if not valid_data:
+        print(f"[WARNING] Không có dữ liệu hợp lệ để xuất file {filename}")
+        return False
 
-def export_to_json(df, file_path, orient='records', index=False):
-    """
-    Xuất DataFrame ra file JSON.
-    
-    Parameters:
-    -----------
-    df : pandas.DataFrame
-        DataFrame cần xuất
-    file_path : str
-        Đường dẫn file JSON (ví dụ: "output/data.json")
-    orient : str, default 'records'
-        Định dạng JSON ('records', 'index', 'values', 'table', 'split')
-    index : bool, default False
-        Có xuất index hay không
-    
-    Returns:
-    --------
-    bool
-        True nếu xuất thành công, False nếu có lỗi
-    """
+    path = ensure_output_dir(output_dir)
+    full_path = os.path.join(path, filename)
+
     try:
-        # Kiểm tra DataFrame hợp lệ
-        if df is None:
-            print("Lỗi: DataFrame là None, không thể xuất!")
-            return False
-        
-        if df.empty:
-            print("Cảnh báo: DataFrame rỗng, vẫn sẽ tạo file JSON trống.")
-        
-        # Tạo thư mục nếu chưa tồn tại
-        directory = os.path.dirname(file_path)
-        if directory and not os.path.exists(directory):
-            os.makedirs(directory)
-        
-        df.to_json(file_path, orient=orient, index=index, force_ascii=False, indent=2)
-        print(f"Đã xuất dữ liệu ra file JSON: {file_path}")
+        with pd.ExcelWriter(full_path, engine='openpyxl') as writer:
+            for sheet_name, df in valid_data.items():
+# Cắt tên sheet nếu quá dài (Excel giới hạn 31 ký tự)
+                safe_sheet_name = sheet_name[:31]
+                df.to_excel(writer, sheet_name=safe_sheet_name, index=False)
+        print(f"[SUCCESS] Đã xuất Multi-sheet Excel: {full_path}")
         return True
     except Exception as e:
-        print(f"Lỗi khi xuất file JSON: {e}")
+        print(f"[ERROR] Lỗi khi xuất Multi-sheet Excel {filename}: {e}")
         return False
 
+# =============================================================================
+# PHẦN 2: CÁC HÀM XUẤT BÁO CÁO CỤ THỂ (SPECIFIC REPORT)
+# =============================================================================
 
-def export_multiple_sheets_to_excel(dataframes_dict, file_path, index=False):
+def export_full_report(df_clean, analysis_module):
     """
-    Xuất nhiều DataFrame vào một file Excel với nhiều sheet.
+    Tổng hợp tất cả phân tích và xuất ra một file Excel báo cáo tổng thể.
     
-    Parameters:
-    -----------
-    dataframes_dict : dict
-        Dictionary với key là tên sheet, value là DataFrame
-        Ví dụ: {'Medal Tally': df1, 'Gender Stats': df2}
-    file_path : str
-        Đường dẫn file Excel (ví dụ: "output/analysis.xlsx")
-    index : bool, default False
-        Có xuất index hay không
-    
-    Returns:
-    --------
-    bool
-        True nếu xuất thành công, False nếu có lỗi
+    Args:
+        df_clean (pd.DataFrame): Dữ liệu sạch.
+        analysis_module (module): Module analysis đã được import.
     """
+    print("\n--- ĐANG TẠO BÁO CÁO TỔNG HỢP ---")
+    
+    # 1. Tạo timestamp để tên file không bị trùng
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"Olympic_Full_Report_{timestamp}.xlsx"
+
+    # 2. Thực hiện các phân tích (gọi hàm từ module analysis)
+    # Lưu ý: Sử dụng try-except để nếu một hàm phân tích lỗi thì vẫn xuất các hàm khác
+    report_data = {}
+
+    # Sheet 1: Dữ liệu tóm tắt (50 dòng đầu)
+    report_data['Top 50 Rows'] = df_clean.head(50)
+
+    # Sheet 2: Thống kê thể chất (Physical Summary)
     try:
-        # Kiểm tra dictionary hợp lệ
-        if not dataframes_dict:
-            print("Lỗi: Dictionary rỗng, không có dữ liệu để xuất!")
-            return False
-        
-        # Lọc bỏ các DataFrame None hoặc rỗng
-        valid_sheets = {}
-        for sheet_name, df in dataframes_dict.items():
-            if df is not None:
-                if df.empty:
-                    print(f"Cảnh báo: Sheet '{sheet_name}' rỗng, sẽ bỏ qua.")
-                else:
-                    valid_sheets[sheet_name] = df
-        
-        if not valid_sheets:
-            print("Lỗi: Không có DataFrame hợp lệ nào để xuất!")
-            return False
-        
-        # Tạo thư mục nếu chưa tồn tại
-        directory = os.path.dirname(file_path)
-        if directory and not os.path.exists(directory):
-            os.makedirs(directory)
-        
-        with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-            for sheet_name, df in valid_sheets.items():
-                df.to_excel(writer, sheet_name=sheet_name, index=index)
-        
-        print(f"Đã xuất {len(valid_sheets)} sheet(s) ra file Excel: {file_path}")
-        return True
+        # Vì hàm analyze_physical_summary trả về dict, cần chuyển sang DataFrame
+        phys_dict = analysis_module.analyze_physical_summary(df_clean)
+        report_data['Physical Stats'] = pd.DataFrame(phys_dict)
     except Exception as e:
-        print(f"Lỗi khi xuất file Excel nhiều sheet: {e}")
-        return False
+        print(f"Lỗi phân tích thể chất: {e}")
 
-
-def export_analysis_results(df_medal_tally=None, df_gender=None, df_age=None, 
-                            df_physique=None, df_dominant_sports=None, 
-                            df_vietnam_participation=None, df_vietnam_medals=None,
-                            df_country_performance=None, df_physical_summary=None,
-                            output_dir='output', prefix='analysis'):
-    """
-    Xuất tất cả kết quả phân tích vào một file Excel với nhiều sheet.
-    
-    Parameters:
-    -----------
-    df_medal_tally : pandas.DataFrame, optional
-        Kết quả từ calculate_medal_tally()
-    df_gender : pandas.DataFrame, optional
-        Kết quả từ analyze_gender_participation()
-    df_age : pandas.DataFrame, optional
-        Kết quả từ analyze_medals_and_participants_by_age()
-    df_physique : pandas.DataFrame, optional
-        Kết quả từ analyze_physique_all_athletes()
-    df_dominant_sports : pandas.DataFrame, optional
-        Kết quả từ analyze_dominant_sports()
-    df_vietnam_participation : pandas.DataFrame, optional
-        Kết quả từ analyze_vietnam_participation()
-    df_vietnam_medals : pandas.DataFrame, optional
-        Kết quả từ get_vietnam_medals()
-    df_country_performance : pandas.DataFrame, optional
-        Kết quả từ get_country_performance_and_hosts() (chỉ DataFrame, không bao gồm list)
-    df_physical_summary : pandas.DataFrame, optional
-        Kết quả từ analyze_physical_summary() (sẽ được chuyển đổi thành DataFrame)
-    output_dir : str, default 'output'
-        Thư mục chứa file xuất
-    prefix : str, default 'analysis'
-        Tiền tố tên file
-    
-    Returns:
-    --------
-    str or None
-        Đường dẫn file đã xuất nếu thành công, None nếu có lỗi
-    """
+    # Sheet 3: Huy chương Việt Nam
     try:
-        # Đảm bảo thư mục output tồn tại
-        output_dir = ensure_output_dir(output_dir)
-        
-        # Tạo tên file với timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = os.path.join(output_dir, f"{prefix}_{timestamp}.xlsx")
-        
-        # Tạo dictionary các sheet
-        sheets = {}
-        
-        if df_medal_tally is not None and not df_medal_tally.empty:
-            sheets['Medal Tally'] = df_medal_tally
-        
-        if df_gender is not None and not df_gender.empty:
-            sheets['Gender Participation'] = df_gender
-        
-        if df_age is not None and not df_age.empty:
-            sheets['Age Analysis'] = df_age
-        
-        if df_physique is not None and not df_physique.empty:
-            sheets['Physique Stats'] = df_physique
-        
-        if df_dominant_sports is not None and not df_dominant_sports.empty:
-            sheets['Dominant Sports'] = df_dominant_sports
-        
-        if df_vietnam_participation is not None and not df_vietnam_participation.empty:
-            sheets['Vietnam Participation'] = df_vietnam_participation
-        
-        if df_vietnam_medals is not None and not df_vietnam_medals.empty:
-            sheets['Vietnam Medals'] = df_vietnam_medals
-        
-        if df_country_performance is not None and not df_country_performance.empty:
-            sheets['Country Performance'] = df_country_performance
-        
-        if df_physical_summary is not None:
-            # Chuyển đổi dict thành DataFrame nếu cần
-            if isinstance(df_physical_summary, dict):
-                df_physical_summary = pd.DataFrame([df_physical_summary])
-            if not df_physical_summary.empty:
-                sheets['Physical Summary'] = df_physical_summary
-        
-        if not sheets:
-            print("Không có dữ liệu nào để xuất!")
-            return None
-        
-        # Xuất ra Excel
-        export_multiple_sheets_to_excel(sheets, file_path)
-        return file_path
-        
+        vn_medals = analysis_module.get_vietnam_medals(df_clean)
+        report_data['Vietnam Medals'] = vn_medals
     except Exception as e:
-        print(f"Lỗi khi xuất kết quả phân tích: {e}")
-        return None
+        print(f"Lỗi phân tích VN: {e}")
+
+    # Sheet 4: Top Quốc gia (Nếu hàm tồn tại trong analysis.py của bạn)
+    # Ở đây tôi ví dụ gọi hàm nếu có, bạn có thể bỏ comment nếu đã viết hàm này
+    # try:
+    #     medal_tally = analysis_module.calculate_medal_tally(df_clean)
+    #     report_data['Medal Tally'] = medal_tally
+    # except:
+    #     pass
+
+    # 3. Xuất file
+    export_multiple_sheets(report_data, filename)
 
 
-def export_filtered_data(df, file_path, format='csv', **kwargs):
+def export_vietnam_specific(df_clean, analysis_module):
     """
-    Xuất dữ liệu đã lọc ra file với định dạng chỉ định.
-    
-    Parameters:
-    -----------
-    df : pandas.DataFrame
-        DataFrame đã được lọc
-    file_path : str
-        Đường dẫn file xuất
-    format : str, default 'csv'
-        Định dạng file ('csv', 'excel', 'json')
-    **kwargs
-        Các tham số bổ sung cho hàm export tương ứng
-    
-    Returns:
-    --------
-    bool
-        True nếu xuất thành công, False nếu có lỗi
+    Xuất báo cáo chuyên sâu chỉ dành riêng cho Việt Nam.
     """
-    # Kiểm tra DataFrame hợp lệ
-    if df is None:
-        print("Lỗi: DataFrame là None, không thể xuất!")
-        return False
+    print("\n--- ĐANG TẠO BÁO CÁO VIỆT NAM ---")
+    filename = "Vietnam_Olympic_History.xlsx"
     
-    format = format.lower()
+    vn_data = {}
     
-    if format == 'csv':
-        return export_to_csv(df, file_path, **kwargs)
-    elif format == 'excel' or format == 'xlsx':
-        return export_to_excel(df, file_path, **kwargs)
-    elif format == 'json':
-        return export_to_json(df, file_path, **kwargs)
-    else:
-        print(f"Định dạng '{format}' không được hỗ trợ. Chỉ hỗ trợ: csv, excel, json")
-        return False
-
-
-def export_vietnam_analysis(df_vietnam_participation=None, df_vietnam_medals=None,
-                            output_dir='output', prefix='vietnam_analysis'):
-    """
-    Xuất các phân tích về Việt Nam vào một file Excel.
-    
-    Parameters:
-    -----------
-    df_vietnam_participation : pandas.DataFrame, optional
-        Kết quả từ analyze_vietnam_participation()
-    df_vietnam_medals : pandas.DataFrame, optional
-        Kết quả từ get_vietnam_medals()
-    output_dir : str, default 'output'
-        Thư mục chứa file xuất
-    prefix : str, default 'vietnam_analysis'
-        Tiền tố tên file
-    
-    Returns:
-    --------
-    str or None
-        Đường dẫn file đã xuất nếu thành công, None nếu có lỗi
-    """
+    # Lấy danh sách huy chương
     try:
-        # Đảm bảo thư mục output tồn tại
-        output_dir = ensure_output_dir(output_dir)
+        vn_medals = analysis_module.get_vietnam_medals(df_clean)
+        vn_data['Danh Sách Huy Chương'] = vn_medals
+    except Exception:
+pass
+
+    # Lấy toàn bộ lịch sử tham gia của VN (Lọc thủ công nếu hàm chưa có)
+    try:
+        # Sử dụng logic lọc từ analysis hoặc pandas trực tiếp
+        vn_history = df_clean[df_clean['NOC'] == 'VIE']
+        vn_data['Lịch Sử Tham Gia'] = vn_history
+    except Exception:
+        pass
         
-        # Tạo tên file với timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = os.path.join(output_dir, f"{prefix}_{timestamp}.xlsx")
-        
-        # Tạo dictionary các sheet
-        sheets = {}
-        
-        if df_vietnam_participation is not None and not df_vietnam_participation.empty:
-            sheets['Vietnam Participation'] = df_vietnam_participation
-        
-        if df_vietnam_medals is not None and not df_vietnam_medals.empty:
-            sheets['Vietnam Medals'] = df_vietnam_medals
-        
-        if not sheets:
-            print("Không có dữ liệu về Việt Nam để xuất!")
-            return None
-        
-        # Xuất ra Excel
-        export_multiple_sheets_to_excel(sheets, file_path)
-        return file_path
-        
-    except Exception as e:
-        print(f"Lỗi khi xuất phân tích Việt Nam: {e}")
-        return None
-        # INSERT_YOUR_CODE
+    export_multiple_sheets(vn_data, filename)
+
+# =============================================================================
+# PHẦN 3: MAIN EXECUTION (TEST)
+# =============================================================================
+
 def main():
     """
-    Hàm main để test các hàm export sử dụng data đã làm sạch thực sự.
+    Hàm này mô phỏng quy trình: Load -> Clean -> Analyze -> Export
+    Sử dụng trực tiếp các file trong thư mục modules.
     """
-    import pandas as pd
-
-    # Giả sử đã có file output/data.csv chứa dữ liệu đã xử lý, load nó
-    data_path = "output/data.csv"
-    if not os.path.exists(data_path):
-        print(f"Không tìm thấy file dữ liệu đã làm sạch: {data_path}")
-        print("Vui lòng chạy bước làm sạch và xuất dữ liệu trước!")
+    # Import cục bộ để tránh lỗi vòng lặp nếu file này được gọi từ nơi khác
+    try:
+        import modules.data_cleaning as dc
+        import modules.analysis as ana
+        print("Import modules thành công!")
+    except ImportError as e:
+        print(f"Lỗi Import: {e}")
+        print("Hãy đảm bảo bạn đang chạy file từ thư mục gốc (chứa folder 'modules')")
         return
+
+    # 1. Định nghĩa đường dẫn file dữ liệu
+    # Giả sử file csv nằm trong thư mục data hoặc ngay bên ngoài
+    input_file = 'athlete_events.csv' 
+    if not os.path.exists(input_file):
+        print(f"Không tìm thấy file: {input_file}")
+        return
+
+    # 2. Load và Clean dữ liệu (Sử dụng data_cleaning.py)
+    print("\n[STEP 1] Loading Data...")
+    df = dc.load_data(input_file)
     
-    # Đọc dữ liệu đã làm sạch
-    df_clean = pd.read_csv(data_path)
-
-    # Test export_to_csv (xuất lại với tên khác)
-    print("==> Xuất thử ra CSV")
-    file_csv = "output/test_export_from_clean.csv"
-    export_to_csv(df_clean, file_csv)
-    print(f"Đã xuất CSV: {file_csv}")
-
-    # Test export_to_excel
-    print("==> Xuất thử ra Excel (1 sheet)")
-    file_excel = "output/test_export_from_clean.xlsx"
-    export_to_excel(df_clean, file_excel, sheet_name="CleanedData")
-    print(f"Đã xuất Excel: {file_excel}")
-
-    # Test export_to_json
-    print("==> Xuất thử ra JSON")
-    file_json = "output/test_export_from_clean.json"
-    export_to_json(df_clean, file_json, orient='records')
-    print(f"Đã xuất JSON: {file_json}")
-
-    # Test export_multiple_sheets_to_excel
-    print("==> Xuất thử ra Excel (nhiều sheet)")
-    # Một số thống kê cơ bản làm các sheet
-    describe = df_clean.describe(include='all')
-    head_data = df_clean.head(20)
-    sheets = {
-        "CleanedData": head_data,
-        "Describe": describe
-    }
-    file_excel_multi = "output/test_multi_sheets_from_clean.xlsx"
-    export_multiple_sheets_to_excel(sheets, file_excel_multi)
-    print(f"Đã xuất multi-sheet Excel: {file_excel_multi}")
-
-    # Test export_analysis_results (giả lập phân tích)
-    print("==> Xuất thử export_analysis_results")
-    # Tạo giả kết quả phân tích nếu có thể
-    medal_tally = None
-    gender_stats = None
-    age_stats = None
-    try:
-        from modules.analysis import calculate_medal_tally, analyze_gender_participation, analyze_medals_and_participants_by_age
-        medal_tally = calculate_medal_tally(df_clean)
-        gender_stats = analyze_gender_participation(df_clean)
-        age_stats = analyze_medals_and_participants_by_age(df_clean)
-    except Exception as e:
-        print(f"Lỗi import hoặc thực thi phân tích: {e}")
-
-    file_path_analysis = export_analysis_results(
-        medal_tally=medal_tally,
-        gender_stats=gender_stats,
-        age_stats=age_stats,
-        output_dir="output",
-        prefix="test_analysis"
-    )
-    print(f"Đã xuất tổng hợp kết quả phân tích: {file_path_analysis}")
-
-    # Test export_vietnam_analysis
-    print("==> Xuất thử export_vietnam_analysis")
-    # Giả lập lấy dữ liệu liên quan tới Vietnam
-    vietnam_participation = None
-    vietnam_medals = None
-    try:
-        # Chỉ chọn các dòng có 'Team' là Vietnam hoặc NOC là VIE
-        if "Team" in df_clean.columns:
-            vietnam_participation = df_clean[(df_clean["Team"].str.lower() == "vietnam") | (df_clean.get("NOC", "") == "VIE")]
-        elif "NOC" in df_clean.columns:
-            vietnam_participation = df_clean[df_clean["NOC"] == "VIE"]
-        # Dữ liệu huy chương
-        if vietnam_participation is not None and "Medal" in vietnam_participation.columns:
-            vietnam_medals = vietnam_participation[vietnam_participation["Medal"].notna() & (vietnam_participation["Medal"] != "No Medal")]
-    except Exception as e:
-        print(f"Lỗi khi lọc dữ liệu Vietnam: {e}")
-
-    file_path_vietnam = export_vietnam_analysis(
-        df_vietnam_participation=vietnam_participation,
-        df_vietnam_medals=vietnam_medals,
-        output_dir="output"
-    )
-    print(f"Đã xuất phân tích Việt Nam: {file_path_vietnam}")
+    if df is not None:
+        print("[STEP 2] Cleaning Data...")
+        df_clean = dc.clean_data(df)
+        
+        # 3. Export Dữ liệu sạch ra CSV để lưu trữ
+        print("[STEP 3] Exporting Cleaned Data...")
+        export_to_csv(df_clean, "cleaned_data.csv")
+        
+        # 4. Chạy phân tích và Xuất báo cáo tổng hợp
+        print("[STEP 4] Generating Reports...")
+        export_full_report(df_clean, ana)
+        export_vietnam_specific(df_clean, ana)
+        
+        print("\n=== HOÀN TẤT QUÁ TRÌNH ===")
+    else:
+        print("Không thể tải dữ liệu.")
 
 if __name__ == "__main__":
     main()
