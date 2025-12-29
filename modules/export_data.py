@@ -2,6 +2,32 @@ import pandas as pd
 import os
 from datetime import datetime
 
+# Thư mục output mặc định
+DEFAULT_OUTPUT_DIR = 'output'
+
+def ensure_output_dir(output_dir=None):
+    """
+    Đảm bảo thư mục output tồn tại, nếu chưa có thì tạo mới.
+    
+    Parameters:
+    -----------
+    output_dir : str, optional
+        Đường dẫn thư mục output. Nếu None thì dùng DEFAULT_OUTPUT_DIR
+    
+    Returns:
+    --------
+    str
+        Đường dẫn tuyệt đối của thư mục output
+    """
+    if output_dir is None:
+        output_dir = DEFAULT_OUTPUT_DIR
+    
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"Đã tạo thư mục output: {os.path.abspath(output_dir)}")
+    
+    return os.path.abspath(output_dir)
+
 def export_to_csv(df, file_path, index=False):
     """
     Xuất DataFrame ra file CSV.
@@ -219,9 +245,8 @@ def export_analysis_results(df_medal_tally=None, df_gender=None, df_age=None,
         Đường dẫn file đã xuất nếu thành công, None nếu có lỗi
     """
     try:
-        # Tạo thư mục output nếu chưa tồn tại
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        # Đảm bảo thư mục output tồn tại
+        output_dir = ensure_output_dir(output_dir)
         
         # Tạo tên file với timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -334,9 +359,8 @@ def export_vietnam_analysis(df_vietnam_participation=None, df_vietnam_medals=Non
         Đường dẫn file đã xuất nếu thành công, None nếu có lỗi
     """
     try:
-        # Tạo thư mục output nếu chưa tồn tại
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        # Đảm bảo thư mục output tồn tại
+        output_dir = ensure_output_dir(output_dir)
         
         # Tạo tên file với timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -362,3 +386,68 @@ def export_vietnam_analysis(df_vietnam_participation=None, df_vietnam_medals=Non
     except Exception as e:
         print(f"Lỗi khi xuất phân tích Việt Nam: {e}")
         return None
+
+
+def main():
+    """
+    Hàm main để demo/test các chức năng export.
+    Tự động tạo thư mục output và xuất dữ liệu mẫu vào đó.
+    Chạy file này bằng: python modules/export_data.py
+    """
+    print("=" * 60)
+    print("XUẤT DỮ LIỆU VÀO THƯ MỤC OUTPUT")
+    print("=" * 60)
+    
+    # Đảm bảo thư mục output tồn tại
+    output_dir = ensure_output_dir()
+    print(f"Thư mục output: {output_dir}\n")
+    
+    # Tạo dữ liệu mẫu để test
+    sample_data = {
+        'Tên': ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C'],
+        'Tuổi': [25, 30, 28],
+        'Thành phố': ['Hà Nội', 'TP.HCM', 'Đà Nẵng']
+    }
+    df_sample = pd.DataFrame(sample_data)
+    
+    print("=== Bắt đầu xuất dữ liệu mẫu ===")
+    print()
+    
+    # Xuất ra CSV
+    print("[1/4] Đang xuất file CSV...")
+    csv_path = os.path.join(output_dir, 'sample_data.csv')
+    export_to_csv(df_sample, csv_path)
+    
+    # Xuất ra Excel
+    print("[2/4] Đang xuất file Excel...")
+    excel_path = os.path.join(output_dir, 'sample_data.xlsx')
+    export_to_excel(df_sample, excel_path, sheet_name='Data')
+    
+    # Xuất ra JSON
+    print("[3/4] Đang xuất file JSON...")
+    json_path = os.path.join(output_dir, 'sample_data.json')
+    export_to_json(df_sample, json_path)
+    
+    # Xuất nhiều sheet vào Excel
+    print("[4/4] Đang xuất file Excel nhiều sheet...")
+    sheets_dict = {
+        'Sheet1': df_sample,
+        'Sheet2': df_sample.copy()
+    }
+    multi_sheet_path = os.path.join(output_dir, 'multi_sheet_data.xlsx')
+    export_multiple_sheets_to_excel(sheets_dict, multi_sheet_path)
+    
+    print()
+    print("=" * 60)
+    print("HOÀN THÀNH!")
+    print("=" * 60)
+    print(f"✓ Tất cả file đã được xuất vào thư mục: {output_dir}")
+    print(f"✓ Các file đã tạo:")
+    print(f"  - sample_data.csv")
+    print(f"  - sample_data.xlsx")
+    print(f"  - sample_data.json")
+    print(f"  - multi_sheet_data.xlsx")
+
+
+if __name__ == "__main__":
+    main()
