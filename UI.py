@@ -134,10 +134,13 @@ if df is not None:
             if data_view_mode == "Dữ Liệu Gốc (Raw Data)":
                 st.warning(
                     "⚠️ Đang hiển thị dữ liệu gốc chưa qua xử lý (Có thể chứa: Giá trị rỗng NaN, Lỗi định dạng, Outlier...)")
-                st.dataframe(df_unclean.head(100), use_container_width=True, height=500)
+                st.dataframe(df_unclean.head(100),
+                             use_container_width=True, height=500)
             else:
-                st.success("✅ Đang hiển thị dữ liệu đã được làm sạch và chuẩn hóa phục vụ phân tích.")
-                st.dataframe(df.head(100), use_container_width=True, height=500)
+                st.success(
+                    "✅ Đang hiển thị dữ liệu đã được làm sạch và chuẩn hóa phục vụ phân tích.")
+                st.dataframe(
+                    df.head(100), use_container_width=True, height=500)
 
             # Giải thích quy trình
             show_explanation("Quy Trình Xử Lý Dữ Liệu (Data Cleaning)",
@@ -205,11 +208,11 @@ if df is not None:
                               (res['Year'] <= f_year_max)]
                     res = ana.filter_data_string(res, team=(f_team if f_team != "Tất cả" else None),
                                                  noc=(f_noc if f_noc !=
-                                                               "Tất cả" else None),
+                                                      "Tất cả" else None),
                                                  season=(
                                                      f_season if f_season != "Tất cả" else None),
                                                  city=(f_city if f_city !=
-                                                                 "Tất cả" else None),
+                                                       "Tất cả" else None),
                                                  sport=(f_sport if f_sport != "Tất cả" else None))
 
                     st.success(f"Tìm thấy **{len(res)}** kết quả.")
@@ -368,7 +371,7 @@ if df is not None:
 
             with tab1:
                 st.subheader("Phân Phối Tuổi - Chiều Cao - Cân Nặng")
-                fig1 = vis.plot_physical_distribution(df)
+                fig1 = vis.plot_physical_distribution(df_unclean)
                 st.pyplot(fig1)
                 show_explanation("Phân Phối Chuẩn",
                                  "Các biểu đồ Histogram cho thấy phần lớn VĐV nằm ở khoảng giữa (phân phối chuẩn). "
