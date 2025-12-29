@@ -386,68 +386,100 @@ def export_vietnam_analysis(df_vietnam_participation=None, df_vietnam_medals=Non
     except Exception as e:
         print(f"Lỗi khi xuất phân tích Việt Nam: {e}")
         return None
-
-
+        # INSERT_YOUR_CODE
 def main():
     """
-    Hàm main để demo/test các chức năng export.
-    Tự động tạo thư mục output và xuất dữ liệu mẫu vào đó.
-    Chạy file này bằng: python modules/export_data.py
+    Hàm main để test các hàm export sử dụng data đã làm sạch thực sự.
     """
-    print("=" * 60)
-    print("XUẤT DỮ LIỆU VÀO THƯ MỤC OUTPUT")
-    print("=" * 60)
-    
-    # Đảm bảo thư mục output tồn tại
-    output_dir = ensure_output_dir()
-    print(f"Thư mục output: {output_dir}\n")
-    
-    # Tạo dữ liệu mẫu để test
-    sample_data = {
-        'Tên': ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C'],
-        'Tuổi': [25, 30, 28],
-        'Thành phố': ['Hà Nội', 'TP.HCM', 'Đà Nẵng']
-    }
-    df_sample = pd.DataFrame(sample_data)
-    
-    print("=== Bắt đầu xuất dữ liệu mẫu ===")
-    print()
-    
-    # Xuất ra CSV
-    print("[1/4] Đang xuất file CSV...")
-    csv_path = os.path.join(output_dir, 'sample_data.csv')
-    export_to_csv(df_sample, csv_path)
-    
-    # Xuất ra Excel
-    print("[2/4] Đang xuất file Excel...")
-    excel_path = os.path.join(output_dir, 'sample_data.xlsx')
-    export_to_excel(df_sample, excel_path, sheet_name='Data')
-    
-    # Xuất ra JSON
-    print("[3/4] Đang xuất file JSON...")
-    json_path = os.path.join(output_dir, 'sample_data.json')
-    export_to_json(df_sample, json_path)
-    
-    # Xuất nhiều sheet vào Excel
-    print("[4/4] Đang xuất file Excel nhiều sheet...")
-    sheets_dict = {
-        'Sheet1': df_sample,
-        'Sheet2': df_sample.copy()
-    }
-    multi_sheet_path = os.path.join(output_dir, 'multi_sheet_data.xlsx')
-    export_multiple_sheets_to_excel(sheets_dict, multi_sheet_path)
-    
-    print()
-    print("=" * 60)
-    print("HOÀN THÀNH!")
-    print("=" * 60)
-    print(f"✓ Tất cả file đã được xuất vào thư mục: {output_dir}")
-    print(f"✓ Các file đã tạo:")
-    print(f"  - sample_data.csv")
-    print(f"  - sample_data.xlsx")
-    print(f"  - sample_data.json")
-    print(f"  - multi_sheet_data.xlsx")
+    import pandas as pd
 
+    # Giả sử đã có file output/data.csv chứa dữ liệu đã xử lý, load nó
+    data_path = "output/data.csv"
+    if not os.path.exists(data_path):
+        print(f"Không tìm thấy file dữ liệu đã làm sạch: {data_path}")
+        print("Vui lòng chạy bước làm sạch và xuất dữ liệu trước!")
+        return
+    
+    # Đọc dữ liệu đã làm sạch
+    df_clean = pd.read_csv(data_path)
+
+    # Test export_to_csv (xuất lại với tên khác)
+    print("==> Xuất thử ra CSV")
+    file_csv = "output/test_export_from_clean.csv"
+    export_to_csv(df_clean, file_csv)
+    print(f"Đã xuất CSV: {file_csv}")
+
+    # Test export_to_excel
+    print("==> Xuất thử ra Excel (1 sheet)")
+    file_excel = "output/test_export_from_clean.xlsx"
+    export_to_excel(df_clean, file_excel, sheet_name="CleanedData")
+    print(f"Đã xuất Excel: {file_excel}")
+
+    # Test export_to_json
+    print("==> Xuất thử ra JSON")
+    file_json = "output/test_export_from_clean.json"
+    export_to_json(df_clean, file_json, orient='records')
+    print(f"Đã xuất JSON: {file_json}")
+
+    # Test export_multiple_sheets_to_excel
+    print("==> Xuất thử ra Excel (nhiều sheet)")
+    # Một số thống kê cơ bản làm các sheet
+    describe = df_clean.describe(include='all')
+    head_data = df_clean.head(20)
+    sheets = {
+        "CleanedData": head_data,
+        "Describe": describe
+    }
+    file_excel_multi = "output/test_multi_sheets_from_clean.xlsx"
+    export_multiple_sheets_to_excel(sheets, file_excel_multi)
+    print(f"Đã xuất multi-sheet Excel: {file_excel_multi}")
+
+    # Test export_analysis_results (giả lập phân tích)
+    print("==> Xuất thử export_analysis_results")
+    # Tạo giả kết quả phân tích nếu có thể
+    medal_tally = None
+    gender_stats = None
+    age_stats = None
+    try:
+        from modules.analysis import calculate_medal_tally, analyze_gender_participation, analyze_medals_and_participants_by_age
+        medal_tally = calculate_medal_tally(df_clean)
+        gender_stats = analyze_gender_participation(df_clean)
+        age_stats = analyze_medals_and_participants_by_age(df_clean)
+    except Exception as e:
+        print(f"Lỗi import hoặc thực thi phân tích: {e}")
+
+    file_path_analysis = export_analysis_results(
+        medal_tally=medal_tally,
+        gender_stats=gender_stats,
+        age_stats=age_stats,
+        output_dir="output",
+        prefix="test_analysis"
+    )
+    print(f"Đã xuất tổng hợp kết quả phân tích: {file_path_analysis}")
+
+    # Test export_vietnam_analysis
+    print("==> Xuất thử export_vietnam_analysis")
+    # Giả lập lấy dữ liệu liên quan tới Vietnam
+    vietnam_participation = None
+    vietnam_medals = None
+    try:
+        # Chỉ chọn các dòng có 'Team' là Vietnam hoặc NOC là VIE
+        if "Team" in df_clean.columns:
+            vietnam_participation = df_clean[(df_clean["Team"].str.lower() == "vietnam") | (df_clean.get("NOC", "") == "VIE")]
+        elif "NOC" in df_clean.columns:
+            vietnam_participation = df_clean[df_clean["NOC"] == "VIE"]
+        # Dữ liệu huy chương
+        if vietnam_participation is not None and "Medal" in vietnam_participation.columns:
+            vietnam_medals = vietnam_participation[vietnam_participation["Medal"].notna() & (vietnam_participation["Medal"] != "No Medal")]
+    except Exception as e:
+        print(f"Lỗi khi lọc dữ liệu Vietnam: {e}")
+
+    file_path_vietnam = export_vietnam_analysis(
+        df_vietnam_participation=vietnam_participation,
+        df_vietnam_medals=vietnam_medals,
+        output_dir="output"
+    )
+    print(f"Đã xuất phân tích Việt Nam: {file_path_vietnam}")
 
 if __name__ == "__main__":
     main()
