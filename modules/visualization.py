@@ -37,7 +37,7 @@ def plot_gender_trend(df):
     plt.title('Xu hướng tham gia của VĐV Nam và Nữ qua các năm')
     plt.legend()
 
-    return fig  # Trả về hình thay vì show()
+    return fig  
 
 
 def plot_top_medals(df, top_n=10):
@@ -109,41 +109,30 @@ def plot_physical_comparison_by_sport(df):
 
 # --- NHÓM BIỂU ĐỒ NÂNG CAO ---
 
-
-# Đảm bảo bạn đã import các thư viện cần thiết ở đầu file
-# Import hàm scale_data từ module của bạn (ví dụ file data_cleaning.py)
-
-
 def plot_athlete_clustering(df):
     """ 
     Phân cụm VĐV (KMeans) 
     """
-    # 1. Chuẩn bị dữ liệu thô: Chỉ lấy cột cần thiết và bỏ NA
+    # Chuẩn bị dữ liệu thô: Chỉ lấy cột cần thiết và bỏ NA
     df_cluster = df[['Age', 'Weight']].dropna().copy()
 
     if len(df_cluster) == 0:
         return None
 
-    # 2. THAY ĐỔI: Sử dụng hàm scale_data có sẵn
-    # Hàm scale_data sẽ tự động nhận diện cột Age và Weight để chuẩn hóa
     df_scaled_result = scale_data(df_cluster)
 
     # Lấy giá trị đã scale ra để đưa vào mô hình KMeans
     X_scaled = df_scaled_result[['Age', 'Weight']].values
 
-    # 3. Chạy thuật toán KMeans (Giữ nguyên logic cũ)
     kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
     df_cluster['Cluster'] = kmeans.fit_predict(X_scaled)
 
-    # 4. Sắp xếp lại nhãn (Cluster Label) để màu sắc nhất quán
-    # (Logic: Nhóm nhẹ cân nhất -> 0, nặng nhất -> 2)
     cluster_means = df_cluster.groupby(
         'Cluster')['Weight'].mean().sort_values()
     mapping = {original: new for new,
                original in enumerate(cluster_means.index)}
     df_cluster['Sorted_Cluster'] = df_cluster['Cluster'].map(mapping)
 
-    # 5. Vẽ biểu đồ (Giữ nguyên logic cũ)
     custom_colors = ['#FFD700', '#008080', '#4B0082']  # Vàng, Xanh, Tím
     cmap = ListedColormap(custom_colors)
 
