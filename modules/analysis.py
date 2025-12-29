@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 
 # loc du lieu
-
-
 def filter_data_number(df, age=None, height=None, weight=None, year=None, sex=None):
     """
     Lọc dữ liệu theo các chỉ số dạng số (lớn hơn hoặc bằng) và giới tính.
@@ -124,25 +122,46 @@ def analyze_gender_participation(df):
 
 def analyze_medals_and_participants_by_age(df):
     """
-    Thống kê số lượng huy chương VÀ số lượng người tham gia theo nhóm tuổi.
+    Phân tích hiệu suất đạt huy chương theo nhóm tuổi.
+    SỬA LỖI: Chỉ đếm huy chương thật (Gold/Silver/Bronze), loại bỏ 'No Medal'.
     """
-    # 1. Lọc dữ liệu: Chỉ bỏ những dòng thiếu thông tin Tuổi (giữ lại người không có huy chương)
-    df_age = df.dropna(subset=['Age']).copy()
-    # 2. Định nghĩa các khoảng tuổi (bins) và nhãn (labels)
+    # 1. Tạo bản sao để xử lý
+    temp_df = df.copy()
+
+    # Loại bỏ các dòng không có tuổi (NaN) để tránh lỗi khi phân nhóm
+    temp_df = temp_df.dropna(subset=['Age'])
+
+    # 2. Chia nhóm tuổi (Binning)
+    # Chia thành các nhóm: U20, 20-30, 30-40, 40-50, Trên 50
     bins = [0, 20, 30, 40, 50, 100]
     labels = ['U20', '20-30', '30-40', '40-50', 'Over 50']
-    # 3. Tạo cột phân nhóm tuổi
-    df_age['AgeGroup'] = pd.cut(
-        df_age['Age'], bins=bins, labels=labels, right=False)
-    # 4. Gom nhóm và tính toán 2 chỉ số cùng lúc bằng hàm agg
-    stats = df_age.groupby('AgeGroup', observed=False).agg({
-        'Medal': 'count',
-        'ID': 'nunique'
-    })
-    # 5. Đổi tên cột cho dễ hiểu
-    stats.columns = ['Medal_Count', 'Participant_Count']
-    stats['Medal_Ratio'] = round(
-        stats['Medal_Count'] / stats['Participant_Count'], 2)
+    temp_df['AgeGroup'] = pd.cut(temp_df['Age'], bins=bins, labels=labels, right=False)
+
+    # 3. Tính số lượng VĐV tham gia (Participant_Count)
+    # Đếm số ID duy nhất (Mỗi người chỉ đếm 1 lần dù thi nhiều môn)
+    participants = temp_df.groupby('AgeGroup', observed=False)['ID'].nunique().reset_index(name='Participant_Count')
+
+    # 4. Tính số lượng Huy chương (Medal_Count) -> QUAN TRỌNG NHẤT
+    # Bước lọc thần thánh: Chỉ lấy dòng có huy chương thật
+    target_medals = ['Gold', 'Silver', 'Bronze']
+    # Chuẩn hóa cột Medal trước khi lọc để chắc ăn
+    temp_df['Medal'] = temp_df['Medal'].astype(str).str.strip().str.title()
+    medals_only = temp_df[temp_df['Medal'].isin(target_medals)]
+
+    # Đếm số huy chương theo nhóm tuổi
+    medal_counts = medals_only.groupby('AgeGroup', observed=False)['Event'].count().reset_index(name='Medal_Count')
+
+    # 5. Gộp 2 bảng lại với nhau
+    stats = pd.merge(participants, medal_counts, on='AgeGroup', how='left')
+
+    # Những nhóm không có huy chương sẽ bị NaN -> thay bằng 0
+    stats['Medal_Count'] = stats['Medal_Count'].fillna(0).astype(int)
+
+    # 6. Tính tỷ lệ (Medal_Ratio)
+    # Tỷ lệ = Số huy chương / Số người tham gia
+    # Ví dụ: 0.1 nghĩa là cứ 10 người đi thi thì có 1 người có giải (hợp lý hơn số 1.74 cũ)
+    stats['Medal_Ratio'] = round(stats['Medal_Count'] / stats['Participant_Count'], 4)
+
     return stats
 
 
@@ -165,29 +184,6 @@ def analyze_physique_all_athletes(df):
         ascending=[False, False, False]
     )
     return physique_stats.round(2)
-
-
-def analyze_dominant_sports(df):
-    """
-    Thống kê số lượng huy chương của từng Quốc gia (Team) theo từng Môn thể thao (Sport).
-    Mục đích: Chỉ ra thế mạnh của từng quốc gia (Ví dụ: Trung Quốc mạnh Cầu lông, Mỹ mạnh Bơi lội).
-    """
-    # 1. Chỉ lấy dữ liệu có huy chương
-    medals_df = df.dropna(subset=['Medal'])
-    # 2. Xử lý môn đồng đội:
-    # Nếu không drop duplicates, đội bóng 11 người sẽ được tính là 11 huy chương
-    # Ta giữ lại 1 dòng đại diện cho mỗi nội dung thi đấu (Event) của mỗi quốc gia trong mỗi kỳ vận hội.
-    medals_df = medals_df.drop_duplicates(
-        subset=['Team', 'NOC', 'Games', 'Year', 'Sport', 'Event', 'Medal'])
-    # 3. Gom nhóm theo Quốc gia (Team) và Môn thể thao (Sport) rồi đếm số huy chương
-    sport_strength = medals_df.groupby(['Team', 'Sport'])[
-        'Event'].count().reset_index()
-    sport_strength.rename(columns={'Event': 'Medal_Count'}, inplace=True)
-    # 4. Sắp xếp dữ liệu
-    # Ưu tiên sắp xếp theo Quốc gia (A-Z), sau đó đến Số huy chương giảm dần (để môn mạnh nhất lên đầu)
-    sport_strength = sport_strength.sort_values(
-        by=['Team', 'Medal_Count'], ascending=[True, False])
-    return sport_strength
 
 def get_country_performance_and_hosts(df, noc_code):
     """
