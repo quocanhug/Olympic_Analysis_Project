@@ -1,0 +1,10 @@
+﻿Year,Athlete_Count,Sports_List,Sports_Count,Sports_Text
+1980,30,"['Athletics', 'Shooting', 'Swimming', 'Wrestling']",4,"Athletics, Shooting, Swimming, Wrestling"
+1988,9,"['Athletics', 'Boxing', 'Cycling', 'Shooting', 'Swimming', 'Wrestling']",6,"Athletics, Boxing, Cycling, Shooting, Swimming, Wrestling"
+1992,7,"['Athletics', 'Shooting', 'Swimming']",3,"Athletics, Shooting, Swimming"
+1996,6,"['Athletics', 'Judo', 'Shooting', 'Swimming']",4,"Athletics, Judo, Shooting, Swimming"
+2000,7,"['Athletics', 'Shooting', 'Swimming', 'Taekwondo']",4,"Athletics, Shooting, Swimming, Taekwondo"
+2004,11,"['Athletics', 'Canoeing', 'Rowing', 'Shooting', 'Swimming', 'Table Tennis', 'Taekwondo', 'Weightlifting']",8,"Athletics, Canoeing, Rowing, Shooting, Swimming, Table Tennis, Taekwondo, Weightlifting"
+2008,13,"['Athletics', 'Badminton', 'Gymnastics', 'Shooting', 'Swimming', 'Table Tennis', 'Taekwondo', 'Weightlifting']",8,"Athletics, Badminton, Gymnastics, Shooting, Swimming, Table Tennis, Taekwondo, Weightlifting"
+2012,18,"['Athletics', 'Badminton', 'Fencing', 'Gymnastics', 'Judo', 'Rowing', 'Shooting', 'Swimming', 'Taekwondo', 'Weightlifting', 'Wrestling']",11,"Athletics, Badminton, Fencing, Gymnastics, Judo, Rowing, Shooting, Swimming, Taekwondo, Weightlifting, Wrestling"
+2016,22,"['Athletics', 'Badminton', 'Fencing', 'Gymnastics', 'Judo', 'Rowing', 'Shooting', 'Swimming', 'Weightlifting', 'Wrestling']",10,"Athletics, Badminton, Fencing, Gymnastics, Judo, Rowing, Shooting, Swimming, Weightlifting, Wrestling"
