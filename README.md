@@ -43,7 +43,8 @@ python export_data.py
 ├── modules/               # Core logic (Cleaning, Analysis, Viz)
 ├── output/                # Kết quả xuất ra (Reports, Charts)
 ├── docs/                  # Tài liệu chi tiết hướng dẫn & kiến trúc
-├── athlete_events.csv     # Dữ liệu nguồn
+├── data/
+        athlete_events.csv # Dữ liệu nguồn
 ├── UI.py                  # Giao diện Web
 └── export_data.py         # Script xuất báo cáo
 
