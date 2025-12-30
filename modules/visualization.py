@@ -1,4 +1,4 @@
-from modules.data_cleaning import scale_data
+from data_cleaning import scale_data
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -37,7 +37,7 @@ def plot_gender_trend(df):
     plt.title('Xu hướng tham gia của VĐV Nam và Nữ qua các năm')
     plt.legend()
 
-    return fig  
+    return fig
 
 
 def plot_top_medals(df, top_n=10):
@@ -108,6 +108,7 @@ def plot_physical_comparison_by_sport(df):
     return fig
 
 # --- NHÓM BIỂU ĐỒ NÂNG CAO ---
+
 
 def plot_athlete_clustering(df):
     """ 
