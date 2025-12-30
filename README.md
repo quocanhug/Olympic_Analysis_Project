@@ -54,9 +54,9 @@ python export_data.py
 
 Chi tiết về kiến trúc và cách sử dụng nâng cao vui lòng xem trong thư mục `docs/`:
 
-* [📘 Hướng dẫn sử dụng chi tiết](https://www.google.com/search?q=docs/USER_GUIDE.md)
-* [🏗️ Kiến trúc hệ thống](https://www.google.com/search?q=docs/ARCHITECTURE.md)
-* [📊 Ý nghĩa dữ liệu](https://www.google.com/search?q=docs/DATA_INSIGHTS.md)
+* [📘 Hướng dẫn sử dụng chi tiết](https://github.com/quocanhug/Olympic_Analysis_Project/blob/main/docs/USER_GUIDE.md)
+* [🏗️ Kiến trúc hệ thống](https://github.com/quocanhug/Olympic_Analysis_Project/blob/main/docs/ARCHITECTURE.md)
+* [📊 Ý nghĩa dữ liệu](https://github.com/quocanhug/Olympic_Analysis_Project/blob/main/docs/ARCHITECTURE.md)
 
 ---
 
