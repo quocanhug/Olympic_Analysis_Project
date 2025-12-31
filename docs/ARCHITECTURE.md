@@ -1,6 +1,3 @@
-Dưới đây là file `architecture.md` được viết lại chính xác theo định dạng bạn yêu cầu, dựa trên cấu trúc thực tế của dự án.
-
-
 # Kiến trúc và Luồng hoạt động chi tiết
 
 ## 🏗️ Kiến trúc tổng quan
