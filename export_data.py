@@ -3,8 +3,8 @@ import os
 import inspect
 import matplotlib.pyplot as plt
 from datetime import datetime
-import data_cleaning as dc
-import analysis as ana
+import modules.data_cleaning as dc
+import modules.analysis as ana
 import visualization as vis
 
 # --- CẤU HÌNH ---
