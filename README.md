@@ -62,5 +62,9 @@ Chi tiết về kiến trúc và cách sử dụng nâng cao vui lòng xem trong
 
 **Nhóm thực hiện:**
 ĐINH QUỐC ANH
+LÝ GIA HÂN
+BÙI THANH PHÚC
+PHAN TUẤN THANH
+ĐỖ THANH THÀNH TÀI
 
 **Môn học:** Lập trình Python (IPPA233277)
