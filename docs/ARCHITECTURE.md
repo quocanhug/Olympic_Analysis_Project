@@ -4,10 +4,10 @@
 
 Dự án được thiết kế theo mô hình **Modular Architecture** (Kiến trúc mô-đun) kết hợp với **Pipeline Processing**, cho phép:
 
-- **Tách biệt trách nhiệm:** Mỗi module (Cleaning, Analysis, Visualization) có một chức năng cụ thể.
-- **Dễ bảo trì:** Sửa đổi logic phân tích không ảnh hưởng đến phần giao diện.
-- **Tái sử dụng:** Các hàm vẽ biểu đồ được dùng chung cho cả Web App (`UI.py`) và Báo cáo tự động (`export_data.py`).
-- **Mở rộng:** Dễ dàng thêm các loại biểu đồ hoặc phân tích mới mà không phá vỡ cấu trúc cũ.
+* **Tách biệt trách nhiệm:** Mỗi module (Cleaning, Analysis, Visualization) có một chức năng cụ thể.
+* **Dễ bảo trì:** Sửa đổi logic phân tích không ảnh hưởng đến phần giao diện.
+* **Tái sử dụng:** Các hàm vẽ biểu đồ được dùng chung cho cả Web App (`UI.py`) và Báo cáo tự động (`export_data.py`).
+* **Mở rộng:** Dễ dàng thêm các loại biểu đồ hoặc phân tích mới mà không phá vỡ cấu trúc cũ.
 
 ## 📐 Sơ đồ kiến trúc
 
@@ -56,15 +56,13 @@ Dự án được thiết kế theo mô hình **Modular Architecture** (Kiến t
 
 ### Phase 1: Data Ingestion (Thu thập dữ liệu)
 
-
 ```
-
 ┌─────────────┐
 │ CSV File    │
 │ (Raw Data)  │
 └──────┬──────┘
-│
-▼
+       │
+       ▼
 ┌─────────────────────┐
 │  data_cleaning.py   │
 │  load_data()        │
@@ -73,8 +71,8 @@ Dự án được thiết kế theo mô hình **Modular Architecture** (Kiến t
 │  - Error handling   │
 │  - Return DataFrame │
 └──────┬──────────────┘
-│
-▼
+       │
+       ▼
 ┌─────────────────────┐
 │  DataFrame (Raw)    │
 │  - 271,116 rows     │
@@ -83,21 +81,22 @@ Dự án được thiết kế theo mô hình **Modular Architecture** (Kiến t
 
 ```
 
-**Input:** File CSV `athlete_events.csv`  
-**Output:** Pandas DataFrame chứa dữ liệu thô  
+**Input:** File CSV `athlete_events.csv`
+
+**Output:** Pandas DataFrame chứa dữ liệu thô
+
 **Xử lý lỗi:** - `FileNotFoundError` → Thông báo lỗi console và trả về `None`.
-- `Exception` khác → In chi tiết lỗi để debug.
 
-### Phase 2: Data Cleaning (Làm sạch dữ liệu)
+* `Exception` khác → In chi tiết lỗi để debug.
 
+### Phase 2: Data Cleaning (Làm sạch & Chuẩn hóa)
 
 ```
-
 ┌─────────────────────┐
 │  DataFrame (Raw)    │
 └──────┬──────────────┘
-│
-▼
+       │
+       ▼
 ┌─────────────────────────────────────────┐
 │         data_cleaning.py                │
 │         clean_data()                    │
@@ -108,14 +107,24 @@ Dự án được thiết kế theo mô hình **Modular Architecture** (Kiến t
 │  Step 4: Fix incorrect labels           │
 │  Step 5: Handle outliers (IQR Method)   │
 └──────┬──────────────────────────────────┘
-│
-▼
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│         data_cleaning.py                │
+│         scale_data()                    │
+│                                         │
+│  - StandardScaler (Z-score)             │
+│  - Applied to: Age, Height, Weight      │
+└──────┬──────────────────────────────────┘
+       │
+       ▼
 ┌─────────────────────┐
 │ DataFrame (Clean)   │
 │ - No duplicates     │
 │ - Correct types     │
 │ - No missing values │
 │ - Outliers capped   │
+│ - Scaled numeric    │
 └─────────────────────┘
 
 ```
@@ -123,6 +132,7 @@ Dự án được thiết kế theo mô hình **Modular Architecture** (Kiến t
 #### Chi tiết các bước làm sạch:
 
 **Step 1: Remove Duplicates**
+
 ```python
 df = df.drop_duplicates()
 
@@ -191,14 +201,15 @@ df[col] = df[col].clip(lower, upper)
 │  │  Data Filtering (Search Logic)     │      │
 │  │  - filter_data_number()            │      │
 │  │  - filter_data_string()            │      │
+│  │  - filter_season_and_year()        │      │
 │  └────────────────────────────────────┘      │
 │                                              │
 │  ┌────────────────────────────────────┐      │
 │  │  Core Analysis Logic               │      │
 │  │  - calculate_medal_tally()         │      │
 │  │  - analyze_gender_participation()  │      │
-│  │  - analyze_physical_summary()      │      │
-│  │  - analyze_dominant_sports()       │      │
+│  │  - analyze_physique_all_athletes() │      │
+│  │  - get_country_performance...()    │      │
 │  └────────────────────────────────────┘      │
 │                                              │
 │  ┌────────────────────────────────────┐      │
@@ -213,8 +224,8 @@ df[col] = df[col].clip(lower, upper)
 │ Analysis Results    │
 │ - Medal Tally DF    │
 │ - Gender Stats DF   │
+│ - Physique Stats DF │
 │ - Vietnam Medals DF │
-│ - Physical Dict     │
 └─────────────────────┘
 
 ```
@@ -263,6 +274,7 @@ medals = df_vn[df_vn['Medal'].isin(['Gold', 'Silver', 'Bronze'])]
 │  │  - plot_host_advantage_china()     │      │
 │  │  - plot_geopolitics_impact()       │      │
 │  │  - plot_athlete_clustering()       │      │
+│  │  - plot_physical_comparison...()   │      │
 │  └────────────────────────────────────┘      │
 │                                              │
 │  ┌────────────────────────────────────┐      │
@@ -270,7 +282,7 @@ medals = df_vn[df_vn['Medal'].isin(['Gold', 'Silver', 'Bronze'])]
 │  │  - plot_vietnam_stats()            │      │
 │  │  - plot_vietnam_details()          │      │
 │  └────────────────────────────────────┘      │
-└──────┬──────────────────────────────────────-┘
+└──────┬──────────────────────────────────────┘
        │
        ▼
 ┌─────────────────────┐
@@ -285,7 +297,7 @@ medals = df_vn[df_vn['Medal'].isin(['Gold', 'Silver', 'Bronze'])]
 
 * Tất cả hàm trả về đối tượng `fig` (Figure) thay vì `plt.show()`.
 * Sử dụng `seaborn` theme whitegrid.
-* Hỗ trợ hiển thị tiếng Việt (nếu cấu hình font).
+* Tích hợp thuật toán `KMeans` (trong `plot_athlete_clustering`) để phân cụm dữ liệu.
 
 ### Phase 5: Presentation & Export (Hiển thị & Xuất)
 
@@ -382,7 +394,7 @@ Hệ thống tự động tạo cây thư mục:
 ### Cơ chế Auto-Export
 
 * **Try-Except Block:** Mỗi hàm phân tích được chạy trong khối try-except riêng biệt. Nếu một hàm lỗi, quy trình export không dừng lại mà tiếp tục sang hàm tiếp theo.
-* **Data Type Handling:** Tự động nhận diện kết quả trả về là `DataFrame`, `Series` hay `Dict` để chuyển đổi format phù hợp trước khi ghi vào Excel/CSV.
+* **Reflection:** Sử dụng thư viện `inspect` để tự động tìm kiếm các hàm mới thêm vào `analysis.py` mà không cần sửa code export thủ công.
 
 ### Cảnh báo thường gặp
 
@@ -392,7 +404,3 @@ Hệ thống tự động tạo cây thư mục:
 ---
 
 **Tài liệu này phản ánh chính xác mã nguồn hiện tại của dự án.**
-
-```
-
-```
