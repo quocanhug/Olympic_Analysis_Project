@@ -1,4 +1,4 @@
-from data_cleaning import scale_data
+from modules.data_cleaning import scale_data
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
